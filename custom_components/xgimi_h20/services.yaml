@@ -1,0 +1,39 @@
+set_settings:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+    settings:
+      required: true
+      example: '{"picture_mode": "Movie", "tv_picture_advance_video_mjc_effect": "High", "picture_brightness": 52}'
+      selector:
+        object:
+    mode:
+      selector:
+        select:
+          options:
+            - menu
+            - live
+          translation_key: write_mode
+read_picture_menu:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+send_keys:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+    keys:
+      required: true
+      example: "DPAD_UP, DPAD_CENTER"
+      selector:
+        text:
+          multiple: true

@@ -1,0 +1,319 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "XGIMI H20",
+        "description": "ADB must be enabled on the projector (Settings → System → Developer options → Network debugging). If Home Assistant's Android TV integration is already connected, its key is reused so no new approval is needed; otherwise confirm the prompt on the projector.",
+        "data": {
+          "host": "Host",
+          "port": "ADB port",
+          "adbkey": "ADB key file (relative to config)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect. Is ADB enabled and the connection approved on the projector?"
+    },
+    "abort": {
+      "already_configured": "Already configured",
+      "not_supported": "Not an XGIMI H20"
+    },
+    "flow_title": "{name}"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "XGIMI H20 options",
+        "data": {
+          "write_mode": "Write mode for picture settings",
+          "scan_interval": "Polling interval",
+          "snapshot_on_start": "Read picture menu after start"
+        },
+        "data_description": {
+          "write_mode": "Persistent: the projector's picture menu is driven briefly (panel visible 3–20 s), the value is stored like a manual change. Live: written directly into the picture pipeline, invisible and instant, but lost on app/source change and not shown in the projector menu. Picture mode and settings without a native key always use the menu.",
+          "snapshot_on_start": "Opens the picture menu once (about 30 s) when the projector is first seen awake, to read all values."
+        }
+      }
+    }
+  },
+  "selector": {
+    "write_mode": {
+      "options": {
+        "menu": "Persistent (via picture menu)",
+        "live": "Live (invisible, not persistent)"
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "picture_mode": {
+        "name": "Picture mode",
+        "state": {
+          "standard": "Standard",
+          "movie": "Movie",
+          "vivid": "Vivid",
+          "imaxenhanced": "IMAX Enhanced",
+          "game": "Game",
+          "sport": "Sport",
+          "filmmaker": "Filmmaker",
+          "user": "ISF Day",
+          "energy_saving": "ISF Night"
+        }
+      },
+      "color_temperature": {
+        "name": "Color temperature",
+        "state": {
+          "standard": "Standard",
+          "d65": "D65",
+          "movie": "Movie",
+          "color_temperature_2": "Color temperature 2",
+          "fresh": "Fresh"
+        }
+      },
+      "gamma": {
+        "name": "Gamma",
+        "state": {
+          "dark": "Dark",
+          "middle": "Medium",
+          "bright": "Bright"
+        }
+      },
+      "color_space": {
+        "name": "Color space",
+        "state": {
+          "original": "Original (native)",
+          "rec709": "Rec.709",
+          "dci_p3": "DCI-P3",
+          "bt2020": "BT.2020",
+          "adobe_rgb": "Adobe RGB"
+        }
+      },
+      "memc": {
+        "name": "MEMC",
+        "state": {
+          "off": "Off",
+          "real_cinema": "Real Cinema",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "hdmi_rgb_range": {
+        "name": "HDMI RGB range",
+        "state": {
+          "auto": "Auto",
+          "full": "Full",
+          "limited": "Limited"
+        }
+      },
+      "pc_mode": {
+        "name": "PC mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "auto": "Auto"
+        }
+      },
+      "noise_reduction": {
+        "name": "Noise reduction (DNR)",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "mpeg_noise_reduction": {
+        "name": "MPEG noise reduction",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "di_film_mode": {
+        "name": "DI film mode",
+        "state": {
+          "off": "Off",
+          "on": "On"
+        }
+      },
+      "max_vivid": {
+        "name": "MaxVivid",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "adaptive_luma": {
+        "name": "Adaptive luma control",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "local_contrast": {
+        "name": "Local contrast",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "de_contour": {
+        "name": "De-contour",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "low_blue_light": {
+        "name": "Low blue light",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      }
+    },
+    "number": {
+      "light_output": {
+        "name": "Light output"
+      },
+      "brightness": {
+        "name": "Brightness"
+      },
+      "contrast": {
+        "name": "Contrast"
+      },
+      "saturation": {
+        "name": "Saturation"
+      },
+      "sharpness": {
+        "name": "Sharpness"
+      }
+    },
+    "switch": {
+      "ambient_light_output": {
+        "name": "Ambient adaptive light output"
+      },
+      "luminance_boost": {
+        "name": "Luminance boost"
+      },
+      "optical_color_filter": {
+        "name": "Optical color filter"
+      },
+      "filmmaker_auto_switch": {
+        "name": "Filmmaker mode auto switch"
+      },
+      "dynamic_black": {
+        "name": "Dynamic black level enhancement"
+      },
+      "super_frame": {
+        "name": "Projector Super Frame"
+      },
+      "ai_pq": {
+        "name": "AI picture quality (AI PQ)"
+      },
+      "high_power": {
+        "name": "High power"
+      }
+    },
+    "button": {
+      "autofocus": {
+        "name": "Autofocus"
+      },
+      "read_picture_menu": {
+        "name": "Read picture settings"
+      },
+      "open_picture_menu": {
+        "name": "Open picture menu"
+      }
+    },
+    "sensor": {
+      "power_state": {
+        "name": "Power state",
+        "state": {
+          "on": "On",
+          "screensaver": "Screensaver",
+          "standby": "Standby",
+          "offline": "Offline"
+        }
+      },
+      "input_source": {
+        "name": "Input source"
+      },
+      "hdr_format": {
+        "name": "HDR format"
+      },
+      "foreground_app": {
+        "name": "Foreground app"
+      },
+      "operating_hours": {
+        "name": "Operating hours"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "last_result": {
+        "name": "Last command"
+      },
+      "native_pq": {
+        "name": "Native PQ (live)"
+      }
+    }
+  },
+  "services": {
+    "set_settings": {
+      "name": "Set picture settings",
+      "description": "Set one or more picture settings in one go.",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "Menu key → value, e.g. picture_mode: Movie. Keys are listed in the README."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Override the configured write mode."
+        }
+      }
+    },
+    "read_picture_menu": {
+      "name": "Read picture settings",
+      "description": "Reads every value from the picture menu (panel visible ~30 s).",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        }
+      }
+    },
+    "send_keys": {
+      "name": "Send keys",
+      "description": "Sends Android key events (e.g. DPAD_UP, HOME, MENU).",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        },
+        "keys": {
+          "name": "Keys",
+          "description": "Key names without KEYCODE_ prefix."
+        }
+      }
+    }
+  }
+}

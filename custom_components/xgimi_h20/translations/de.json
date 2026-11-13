@@ -1,0 +1,319 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "XGIMI H20",
+        "description": "Auf dem Beamer muss ADB aktiv sein (Einstellungen → System → Entwickleroptionen → Netzwerk-Debugging). Ist die Android-TV-Integration von Home Assistant bereits verbunden, wird deren Schlüssel genutzt – dann ist keine neue Freigabe nötig. Sonst die Abfrage am Beamer bestätigen.",
+        "data": {
+          "host": "Host",
+          "port": "ADB-Port",
+          "adbkey": "ADB-Schlüsseldatei (relativ zu config)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Keine Verbindung. Ist ADB aktiv und die Verbindung am Beamer erlaubt?"
+    },
+    "abort": {
+      "already_configured": "Bereits eingerichtet",
+      "not_supported": "Kein XGIMI H20"
+    },
+    "flow_title": "{name}"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "XGIMI H20 Optionen",
+        "data": {
+          "write_mode": "Schreibmodus für Bildeinstellungen",
+          "scan_interval": "Abfrageintervall",
+          "snapshot_on_start": "Bildmenü nach dem Start einlesen"
+        },
+        "data_description": {
+          "write_mode": "Dauerhaft: Das Bildmenü des Beamers wird kurz automatisch bedient (Panel 3–20 s sichtbar), der Wert wird wie eine manuelle Änderung gespeichert. Live: direkt in die Bildpipeline geschrieben – unsichtbar und sofort, geht aber beim App-/Quellwechsel verloren und wird im Beamer-Menü nicht angezeigt. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.",
+          "snapshot_on_start": "Öffnet einmalig das Bildmenü (ca. 30 s), sobald der Beamer wach erkannt wird, und liest alle Werte."
+        }
+      }
+    }
+  },
+  "selector": {
+    "write_mode": {
+      "options": {
+        "menu": "Dauerhaft (über Bildmenü)",
+        "live": "Live (unsichtbar, nicht dauerhaft)"
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "picture_mode": {
+        "name": "Bildmodus",
+        "state": {
+          "standard": "Standard",
+          "movie": "Film",
+          "vivid": "Lebhaft",
+          "imaxenhanced": "IMAX Enhanced",
+          "game": "Spiel",
+          "sport": "Sport",
+          "filmmaker": "Filmemacher-Modus",
+          "user": "ISF-Tag",
+          "energy_saving": "ISF-Nacht"
+        }
+      },
+      "color_temperature": {
+        "name": "Farbtemperatur",
+        "state": {
+          "standard": "Standard",
+          "d65": "D65",
+          "movie": "Film",
+          "color_temperature_2": "Farbtemperatur 2",
+          "fresh": "Frisch"
+        }
+      },
+      "gamma": {
+        "name": "Gamma",
+        "state": {
+          "dark": "Dunkel",
+          "middle": "Mittel",
+          "bright": "Hell"
+        }
+      },
+      "color_space": {
+        "name": "Farbraum",
+        "state": {
+          "original": "Nativ",
+          "rec709": "Rec.709",
+          "dci_p3": "DCI-P3",
+          "bt2020": "BT.2020",
+          "adobe_rgb": "Adobe RGB"
+        }
+      },
+      "memc": {
+        "name": "MEMC",
+        "state": {
+          "off": "Aus",
+          "real_cinema": "Echtes Kino",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "hdmi_rgb_range": {
+        "name": "HDMI-RGB-Spektrum",
+        "state": {
+          "auto": "Automatisch",
+          "full": "Vollständig",
+          "limited": "Begrenzt"
+        }
+      },
+      "pc_mode": {
+        "name": "PC-Modus",
+        "state": {
+          "off": "Aus",
+          "on": "An",
+          "auto": "Automatisch"
+        }
+      },
+      "noise_reduction": {
+        "name": "Rauschunterdrückung (DNR)",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "mpeg_noise_reduction": {
+        "name": "MPEG-Rauschunterdrückung",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "di_film_mode": {
+        "name": "DI-Filmmodus",
+        "state": {
+          "off": "Aus",
+          "on": "An"
+        }
+      },
+      "max_vivid": {
+        "name": "MaxLebhaft",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "adaptive_luma": {
+        "name": "Adaptive Luma-Steuerung",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "local_contrast": {
+        "name": "Lokaler Kontrast",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "de_contour": {
+        "name": "Konturenglättung",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "low_blue_light": {
+        "name": "Niedriger Blaulichtanteil",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      }
+    },
+    "number": {
+      "light_output": {
+        "name": "Projektor-Lichtleistung"
+      },
+      "brightness": {
+        "name": "Helligkeit"
+      },
+      "contrast": {
+        "name": "Kontrast"
+      },
+      "saturation": {
+        "name": "Sättigung"
+      },
+      "sharpness": {
+        "name": "Schärfe"
+      }
+    },
+    "switch": {
+      "ambient_light_output": {
+        "name": "Umgebungsangepasste Lichtleistung"
+      },
+      "luminance_boost": {
+        "name": "Leuchtdichte-Boost"
+      },
+      "optical_color_filter": {
+        "name": "Optischer Farbfilter"
+      },
+      "filmmaker_auto_switch": {
+        "name": "Filmmaker-Modus automatisch"
+      },
+      "dynamic_black": {
+        "name": "Dynamische Schwarzwertverbesserung"
+      },
+      "super_frame": {
+        "name": "Projektor-Super-Frame"
+      },
+      "ai_pq": {
+        "name": "AI-Bildoptimierung (AI PQ)"
+      },
+      "high_power": {
+        "name": "Hohe Leistung"
+      }
+    },
+    "button": {
+      "autofocus": {
+        "name": "Autofokus"
+      },
+      "read_picture_menu": {
+        "name": "Bildeinstellungen einlesen"
+      },
+      "open_picture_menu": {
+        "name": "Bildmenü öffnen"
+      }
+    },
+    "sensor": {
+      "power_state": {
+        "name": "Betriebszustand",
+        "state": {
+          "on": "An",
+          "screensaver": "Bildschirmschoner",
+          "standby": "Standby",
+          "offline": "Offline"
+        }
+      },
+      "input_source": {
+        "name": "Eingangsquelle"
+      },
+      "hdr_format": {
+        "name": "HDR-Format"
+      },
+      "foreground_app": {
+        "name": "Aktive App"
+      },
+      "operating_hours": {
+        "name": "Betriebsstunden"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "last_result": {
+        "name": "Letzter Befehl"
+      },
+      "native_pq": {
+        "name": "Native Bildwerte (live)"
+      }
+    }
+  },
+  "services": {
+    "set_settings": {
+      "name": "Bildeinstellungen setzen",
+      "description": "Setzt eine oder mehrere Bildeinstellungen in einem Durchgang.",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        },
+        "settings": {
+          "name": "Einstellungen",
+          "description": "Menü-Key → Wert, z. B. picture_mode: Movie. Alle Keys stehen in der README."
+        },
+        "mode": {
+          "name": "Modus",
+          "description": "Überschreibt den eingestellten Schreibmodus."
+        }
+      }
+    },
+    "read_picture_menu": {
+      "name": "Bildeinstellungen einlesen",
+      "description": "Liest alle Werte aus dem Bildmenü (Panel ca. 30 s sichtbar).",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        }
+      }
+    },
+    "send_keys": {
+      "name": "Tasten senden",
+      "description": "Sendet Android-Tastenereignisse (z. B. DPAD_UP, HOME, MENU).",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        },
+        "keys": {
+          "name": "Tasten",
+          "description": "Tastennamen ohne KEYCODE_-Präfix."
+        }
+      }
+    }
+  }
+}

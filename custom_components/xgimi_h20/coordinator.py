@@ -53,6 +53,7 @@ class XgimiData:
     sources: dict[str, str] = field(default_factory=dict)
     profile: str | None = None
     disabled: frozenset[str] = frozenset()
+    app_labels: dict[str, str] = field(default_factory=dict)
     last_result: str | None = None
     busy: bool = False
 
@@ -81,6 +82,8 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self._profiles: dict[str, dict[str, Any]] = {}
         self._globals: dict[str, Any] = {}
         self._disabled: dict[str, list[str]] = {}
+        self._labels: dict[str, str] = {}
+        self._label_tried: set[str] = set()
         self._auto_tried: set[str] = set()
         self._pending_signal: str | None = None
         self._native_signal: str | None = None
@@ -104,6 +107,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self._modes = dict(stored.get("modes", {}))
         self._profiles = {k: dict(v) for k, v in stored.get("profiles", {}).items()}
         self._disabled = {k: list(v) for k, v in stored.get("disabled", {}).items()}
+        self._labels = dict(stored.get("labels", {}))
         if "values" in stored and not self._profiles:
             # v1.0.x stored one flat dict (read in Google TV / SDR).
             old = dict(stored["values"])
@@ -252,6 +256,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             "modes": dict(self._modes),
             "profiles": {k: dict(v) for k, v in self._profiles.items()},
             "disabled": {k: list(v) for k, v in self._disabled.items()},
+            "labels": dict(self._labels),
         }
 
     def _data(self) -> XgimiData:
@@ -269,6 +274,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             busy=self._busy,
             profile=profile,
             disabled=frozenset(self._disabled.get(profile, ())) if profile else frozenset(),
+            app_labels=dict(self._labels),
         )
 
     # ------------------------------------------------------------ polling
@@ -293,10 +299,32 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 value = self._normalize(setting, state.settings[setting.global_key])
                 if self._globals.get(setting.key) != value:
                     self._set_value(setting.key, value, "device")
+        self._maybe_fetch_label(state)
         self._sync_read_keys(state)
         self._sync_native(state)
         self._maybe_auto_read(state)
         return self._data()
+
+    def _maybe_fetch_label(self, state: XgimiState) -> None:
+        package = state.foreground_package
+        if not package or package in self._labels or package in self._label_tried:
+            return
+        self._label_tried.add(package)
+        locale = state.props.get("persist.sys.locale")
+        self.config_entry.async_create_background_task(
+            self.hass, self._fetch_label(package, locale), f"{DOMAIN}_app_label"
+        )
+
+    async def _fetch_label(self, package: str, locale: str | None) -> None:
+        try:
+            label = await self.client.async_app_label(package, (locale or "en")[:2])
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug("App label for %s failed: %s", package, err)
+            return
+        if label:
+            self._labels[package] = label
+            self._store.async_delay_save(self._store_payload, 5)
+            self.async_set_updated_data(self._data())
 
     def _sync_read_keys(self, state: XgimiState) -> None:
         """Values XGIMI keeps in Settings.Global but only the menu writes."""

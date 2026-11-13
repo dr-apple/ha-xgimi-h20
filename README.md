@@ -34,7 +34,7 @@ Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`
 
 Der H20 speichert Bildwerte **pro Profil** – also pro Quelle (Google TV, HDMI 1 …), Signaltyp (SDR, HDR10, HLG, Dolby Vision …) und Bildmodus. Die Integration merkt sich die Werte genauso: Startet ein Dolby-Vision-Film, zeigen die Entitäten die Werte des Dolby-Vision-Profils, danach wieder die des vorherigen. Einstellungen, die der Beamer im aktuellen Profil sperrt (z. B. *Hohe Leistung* bei Dolby Vision), erscheinen als „nicht verfügbar“.
 
-**Status**: Betriebszustand (an / Bildschirmschoner / Standby / offline), Eingangsquelle, HDR-Format (SDR, HDR10, HLG, Dolby Vision …), aktive App, Betriebsstunden, Firmware, letzter Befehl, native Live-Bildwerte (Diagnose).
+**Status**: Betriebszustand (an / Bildschirmschoner / Standby / offline), Eingangsquelle, HDR-Format (SDR, HDR10, HLG, Dolby Vision …), aktive App mit ihrem echten Namen (z. B. „SmartTube", „Netflix"; bei HDMI der Eingang – der Name wird einmalig aus der App gelesen und gespeichert), Betriebsstunden, Firmware, letzter Befehl, native Live-Bildwerte (Diagnose).
 
 **Aktionen**: Autofokus, Bildmenü öffnen, Bildeinstellungen einlesen, beliebige Tasten senden.
 

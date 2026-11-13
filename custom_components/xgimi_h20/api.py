@@ -327,6 +327,31 @@ class XgimiH20:
         if keys:
             await self.shell("input keyevent " + " ".join(keys))
 
+    async def async_app_label(self, package: str, language: str | None) -> str | None:
+        """Read an app's display name from its APK resources."""
+        import base64
+
+        from .labels import parse_resolve_activity, resolve_string
+
+        if not re.fullmatch(r"[A-Za-z0-9_.]+", package):
+            return None
+        out = await self.shell(f"cmd package resolve-activity -a android.intent.action.MAIN {package}")
+        res_id, plain = parse_resolve_activity(out)
+        if plain:
+            return plain
+        if res_id is None:
+            return None
+        b64 = await self.shell(
+            f"unzip -p $(pm path {package} | head -1 | cut -d: -f2) resources.arsc | base64 -w 0",
+            timeout=60.0,
+        )
+        try:
+            arsc = base64.b64decode(b64.strip())
+        except ValueError:
+            return None
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, resolve_string, arsc, res_id, language)
+
     async def async_autofocus(self) -> None:
         await self.shell(f"service call {FOCUS_SERVICE} 3 i32 2")
 

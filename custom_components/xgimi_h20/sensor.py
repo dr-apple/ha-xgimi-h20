@@ -58,6 +58,29 @@ def _signal(data: XgimiData, index: int) -> str | None:
     return value
 
 
+# System components whose own labels are technical names.
+SYSTEM_APPS = {
+    "com.google.android.apps.tv.dreamx": ("Bildschirmschoner", "Screensaver"),
+    "com.mediatek.tv.settings": ("Bildeinstellungen", "Picture settings"),
+    "com.android.tv.settings": ("Einstellungen", "Settings"),
+    "com.google.android.tvlauncher": ("Startbildschirm", "Home screen"),
+    "com.xgimi.misckey": ("XGIMI-Menü", "XGIMI menu"),
+}
+
+
+def _app_name(data: XgimiData) -> str | None:
+    package = data.state.foreground_package
+    if not package:
+        return None
+    if package == "com.google.android.tv.inputplayer":
+        source = _signal(data, 0)
+        return source if source and source != "Google TV" else "HDMI"
+    german = (data.state.props.get("persist.sys.locale") or "").startswith("de")
+    if package in SYSTEM_APPS:
+        return SYSTEM_APPS[package][0 if german else 1]
+    return data.app_labels.get(package, package)
+
+
 def _hours(data: XgimiData) -> float | None:
     raw = data.state.settings.get("tv_life_time")
     try:
@@ -90,7 +113,8 @@ SENSORS = (
     ),
     XgimiSensorDescription(
         key="foreground_app", translation_key="foreground_app", icon="mdi:application",
-        value=lambda d: d.state.foreground_package,
+        value=_app_name,
+        attrs=lambda d: {"package": d.state.foreground_package},
     ),
     XgimiSensorDescription(
         key="operating_hours", translation_key="operating_hours", icon="mdi:timer-outline",

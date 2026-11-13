@@ -54,7 +54,7 @@ class XgimiSettingEntity(XgimiEntity):
     @property
     def available(self) -> bool:
         data = self.coordinator.data
-        return super().available and data.state.awake
+        return super().available and data.state.awake and self.setting.key not in data.disabled
 
     @property
     def raw_value(self) -> Any:

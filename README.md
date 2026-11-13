@@ -12,7 +12,7 @@ Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`
 
 | Entität | Menü-Key (für `set_settings`) | Werte |
 |---|---|---|
-| Bildmodus | `picture_mode` | Standard, Movie, Vivid, ImaxEnhanced (HDR), Game, Sport, FilmMaker, User (ISF-Tag), Energy Saving (ISF-Nacht) |
+| Bildmodus | `picture_mode` | Standard, Movie, Vivid, ImaxEnhanced (HDR), Game, Sport, FilmMaker, User (ISF-Tag), Energy Saving (ISF-Nacht); bei Dolby Vision: DolbyVisionBright, DolbyVisionDark, DolbyVisionVivid, DolbyVisionIQ, DolbyVisionGame, DolbyVisionFilmmaker, DolbyVisionIQFilmmaker |
 | Projektor-Lichtleistung | `picture_projector_brightness` | 1–10 |
 | Helligkeit / Kontrast / Sättigung | `picture_brightness` / `picture_contrast` / `picture_saturation` | 0–100 |
 | Schärfe | `picture_sharpness` | 0–20 |
@@ -32,7 +32,7 @@ Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`
 | HDMI-RGB-Spektrum, PC-Modus | `tv_picture_video_hdmi_rgb_range`, `tv_picture_video_pc_mode` | Auto/Full/Limited, Off/On/Auto |
 | Dyn. Schwarzwertverbesserung, Super Frame, Hohe Leistung, Leuchtdichte-Boost, Umgebungsangepasste Lichtleistung, Optischer Farbfilter, Filmmaker-Auto | Schalter | true / false |
 
-Bildwerte gelten beim H20 **pro Bildmodus** – nach einem Moduswechsel zeigen die Entitäten die Werte des neuen Modus, sobald sie bekannt sind.
+Der H20 speichert Bildwerte **pro Profil** – also pro Quelle (Google TV, HDMI 1 …), Signaltyp (SDR, HDR10, HLG, Dolby Vision …) und Bildmodus. Die Integration merkt sich die Werte genauso: Startet ein Dolby-Vision-Film, zeigen die Entitäten die Werte des Dolby-Vision-Profils, danach wieder die des vorherigen. Einstellungen, die der Beamer im aktuellen Profil sperrt (z. B. *Hohe Leistung* bei Dolby Vision), erscheinen als „nicht verfügbar“.
 
 **Status**: Betriebszustand (an / Bildschirmschoner / Standby / offline), Eingangsquelle, HDR-Format (SDR, HDR10, HLG, Dolby Vision …), aktive App, Betriebsstunden, Firmware, letzter Befehl, native Live-Bildwerte (Diagnose).
 
@@ -48,7 +48,7 @@ Die Bild-Datenbank des MediaTek-Chips ist für ADB gesperrt (nur System-Apps dü
 
 Den Modus stellst du jederzeit unter **Einstellungen → Geräte & Dienste → XGIMI H20 → Konfigurieren** um. Pro Aufruf lässt er sich im Dienst `xgimi_h20.set_settings` mit `mode: live` oder `mode: menu` überschreiben.
 
-**Aktuelle Werte**: Änderungen – auch per Fernbedienung – kommen über einen dauerhaften Logcat-Stream **in Echtzeit** in HA an. Der letzte Stand wird über Neustarts gespeichert. Für einen vollständigen Abgleich gibt es den Button **„Bildeinstellungen einlesen"** (liest beide Menüseiten, Panel ca. 30 s sichtbar) bzw. die Option „Bildmenü nach dem Start einlesen".
+**Aktuelle Werte**: Änderungen – auch per Fernbedienung – kommen über einen dauerhaften Logcat-Stream **in Echtzeit** in HA an. Der letzte Stand wird über Neustarts gespeichert. Für einen vollständigen Abgleich gibt es den Button **„Bildeinstellungen einlesen"** (liest beide Menüseiten, Panel ca. 30 s sichtbar) bzw. die Option **„Neue Bildprofile automatisch einlesen“**: Sie liest das Menü einmalig, sobald ein noch unbekanntes Profil stabil läuft (z. B. beim ersten Dolby-Vision-Film) – bekannte Profile werden nie erneut eingelesen.
 
 ## Installation
 

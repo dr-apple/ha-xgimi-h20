@@ -55,6 +55,7 @@ class MenuRobot:
         self._i18n = i18n
         self._locale_chain: list[str] = ["default"]
         self.last_snapshot: dict[str, Any] = {}
+        self.last_disabled: set[str] = set()
 
     # ------------------------------------------------------------ i18n
     def set_locale(self, locale: str | None) -> None:
@@ -276,10 +277,13 @@ class MenuRobot:
     async def async_snapshot(self, pickers: dict[str, list[str]]) -> dict[str, Any]:
         """Read every visible value of both picture pages."""
         values: dict[str, Any] = {}
+        disabled: set[str] = set()
 
         def collect(items: list[MenuItem]) -> None:
             for item in items:
                 for key in self._keys_for_title(item.title, item.kind):
+                    if not item.focusable:
+                        disabled.add(key)
                     if item.kind == "switch":
                         values[key] = item.checked
                     elif item.kind == "seekbar":
@@ -309,4 +313,5 @@ class MenuRobot:
         finally:
             await self._client.async_close_picture_menu()
         self.last_snapshot.update(values)
+        self.last_disabled = disabled
         return values

@@ -51,6 +51,7 @@ class XgimiData:
     values: dict[str, Any] = field(default_factory=dict)
     sources: dict[str, str] = field(default_factory=dict)
     profile: str | None = None
+    disabled: frozenset[str] = frozenset()
     last_result: str | None = None
     busy: bool = False
 
@@ -78,6 +79,9 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self._modes: dict[str, str] = {}
         self._profiles: dict[str, dict[str, Any]] = {}
         self._globals: dict[str, Any] = {}
+        self._disabled: dict[str, list[str]] = {}
+        self._auto_tried: set[str] = set()
+        self._pending_signal: str | None = None
         self._sources: dict[str, str] = {}
         self._state = XgimiState()
         self._last_result: str | None = None
@@ -85,7 +89,6 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self._write_lock = asyncio.Lock()
         self._stream_task: asyncio.Task | None = None
         self._stream: XgimiLogStream | None = None
-        self._snapshot_done = False
 
     # -------------------------------------------------------------- setup
     @property
@@ -96,6 +99,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         stored = await self._store.async_load() or {}
         self._modes = dict(stored.get("modes", {}))
         self._profiles = {k: dict(v) for k, v in stored.get("profiles", {}).items()}
+        self._disabled = {k: list(v) for k, v in stored.get("disabled", {}).items()}
         if "values" in stored and not self._profiles:
             # v1.0.x stored one flat dict (read in Google TV / SDR).
             old = dict(stored["values"])
@@ -219,9 +223,16 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 self._profiles.setdefault(profile, {})[key] = value
         self._sources[key] = source
         self._store.async_delay_save(
-            lambda: {"modes": dict(self._modes), "profiles": {k: dict(v) for k, v in self._profiles.items()}},
+            self._store_payload,
             5,
         )
+
+    def _store_payload(self) -> dict[str, Any]:
+        return {
+            "modes": dict(self._modes),
+            "profiles": {k: dict(v) for k, v in self._profiles.items()},
+            "disabled": {k: list(v) for k, v in self._disabled.items()},
+        }
 
     def _data(self) -> XgimiData:
         signal = self._signal()
@@ -237,6 +248,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             last_result=self._last_result,
             busy=self._busy,
             profile=profile,
+            disabled=frozenset(self._disabled.get(profile, ())) if profile else frozenset(),
         )
 
     # ------------------------------------------------------------ polling
@@ -261,14 +273,39 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 value = self._normalize(setting, state.settings[setting.global_key])
                 if self._globals.get(setting.key) != value:
                     self._set_value(setting.key, value, "device")
-        if (
-            not self._snapshot_done
-            and state.awake
-            and self.config_entry.options.get(CONF_SNAPSHOT_ON_START, False)
-        ):
-            self._snapshot_done = True
-            self.hass.async_create_task(self.async_read_menu())
+        self._maybe_auto_read(state)
         return self._data()
+
+    def _maybe_auto_read(self, state: XgimiState) -> None:
+        """Read the picture menu once for every new, stable picture profile."""
+        if not self.config_entry.options.get(CONF_SNAPSHOT_ON_START, False):
+            return
+        if state.wakefulness != "Awake" or self._busy:
+            self._pending_signal = None
+            return
+        signal = self._signal()
+        profile = self._profile_key(signal)
+        token = profile or signal
+        known = profile is not None and bool(self._profiles.get(profile))
+        if known or token in self._auto_tried:
+            self._pending_signal = None
+            return
+        if self._pending_signal != token:
+            # Wait one more poll so a short-lived signal (menus, intros) is ignored.
+            self._pending_signal = token
+            return
+        self._auto_tried.add(token)
+        self._pending_signal = None
+        _LOGGER.debug("Reading picture menu for new profile %s", signal)
+        self.config_entry.async_create_background_task(
+            self.hass, self._auto_read(), f"{DOMAIN}_auto_read"
+        )
+
+    async def _auto_read(self) -> None:
+        try:
+            await self.async_read_menu()
+        except HomeAssistantError as err:
+            _LOGGER.debug("Automatic picture menu read failed: %s", err)
 
     # ------------------------------------------------------------- writes
     async def async_set_values(self, changes: dict[str, Any], mode: str | None = None) -> None:
@@ -279,10 +316,15 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         live_perstream: dict[str, Any] = {}
         global_writes: list[tuple[PictureSetting, Any]] = []
 
+        current_disabled = self._data().disabled
         for key, raw in changes.items():
             setting = SETTINGS_BY_KEY.get(key)
             if setting is None:
                 raise HomeAssistantError(f"Unknown setting {key}")
+            if key in current_disabled:
+                raise HomeAssistantError(
+                    f"{key} is locked by the projector in the current picture mode / signal"
+                )
             value = self._normalize(setting, raw)
             if setting.kind == "picker" and setting.options and value not in setting.options:
                 raise HomeAssistantError(f"{value} is not valid for {key}")
@@ -354,6 +396,10 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 setting = SETTINGS_BY_KEY.get(key)
                 if setting is not None and value is not None:
                     self._set_value(key, self._normalize(setting, value), "menu")
+            profile = self._profile_key()
+            if profile is not None:
+                self._disabled[profile] = sorted(self.robot.last_disabled)
+                self._store.async_delay_save(self._store_payload, 5)
             self._last_result = "ok"
             self.async_set_updated_data(self._data())
             return values

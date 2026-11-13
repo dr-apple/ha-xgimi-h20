@@ -27,11 +27,11 @@
         "data": {
           "write_mode": "Schreibmodus für Bildeinstellungen",
           "scan_interval": "Abfrageintervall",
-          "snapshot_on_start": "Bildmenü nach dem Start einlesen"
+          "snapshot_on_start": "Neue Bildprofile automatisch einlesen"
         },
         "data_description": {
           "write_mode": "Dauerhaft: Das Bildmenü des Beamers wird kurz automatisch bedient (Panel 3–20 s sichtbar), der Wert wird wie eine manuelle Änderung gespeichert. Live: direkt in die Bildpipeline geschrieben – unsichtbar und sofort, geht aber beim App-/Quellwechsel verloren und wird im Beamer-Menü nicht angezeigt. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.",
-          "snapshot_on_start": "Öffnet einmalig das Bildmenü (ca. 30 s), sobald der Beamer wach erkannt wird, und liest alle Werte."
+          "snapshot_on_start": "Taucht eine Kombination aus Quelle, HDR-Typ und Bildmodus zum ersten Mal auf (z. B. der erste Dolby-Vision-Film), wird das Bildmenü einmal eingelesen (Panel ca. 30 s sichtbar). Danach kennt HA alle Werte dieses Profils."
         }
       }
     }

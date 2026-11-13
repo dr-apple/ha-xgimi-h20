@@ -27,11 +27,11 @@
         "data": {
           "write_mode": "Write mode for picture settings",
           "scan_interval": "Polling interval",
-          "snapshot_on_start": "Read picture menu after start"
+          "snapshot_on_start": "Read new picture profiles automatically"
         },
         "data_description": {
           "write_mode": "Persistent: the projector's picture menu is driven briefly (panel visible 3–20 s), the value is stored like a manual change. Live: written directly into the picture pipeline, invisible and instant, but lost on app/source change and not shown in the projector menu. Picture mode and settings without a native key always use the menu.",
-          "snapshot_on_start": "Opens the picture menu once (about 30 s) when the projector is first seen awake, to read all values."
+          "snapshot_on_start": "When a source / HDR type / picture mode combination is seen for the first time (e.g. the first Dolby Vision title), the picture menu is read once (panel visible ~30 s) so every value is known for that profile."
         }
       }
     }

@@ -29,6 +29,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WRITE_MODE,
     DOMAIN,
+    GM_PICTURE_MODES,
     PQ_PERSTREAM_KEYS,
     SETTINGS,
     SETTINGS_BY_KEY,
@@ -198,9 +199,13 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         mode = self._modes.get(signal)
         return f"{signal}|{mode}" if mode else None
 
+    @staticmethod
+    def _is_live_key(setting: PictureSetting | None) -> bool:
+        return bool(setting and (setting.global_key or setting.read_key))
+
     def _current_value(self, key: str, signal: str | None = None) -> Any:
         setting = SETTINGS_BY_KEY.get(key)
-        if setting and setting.global_key:
+        if self._is_live_key(setting):
             return self._globals.get(key)
         signal = signal or self._signal()
         if key == "picture_mode":
@@ -210,7 +215,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
 
     def _set_value(self, key: str, value: Any, source: str, signal: str | None = None) -> None:
         setting = SETTINGS_BY_KEY.get(key)
-        if setting and setting.global_key:
+        if self._is_live_key(setting):
             self._globals[key] = value
         else:
             signal = signal or self._signal()
@@ -273,8 +278,59 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 value = self._normalize(setting, state.settings[setting.global_key])
                 if self._globals.get(setting.key) != value:
                     self._set_value(setting.key, value, "device")
+        self._sync_read_keys(state)
+        self._sync_native(state)
         self._maybe_auto_read(state)
         return self._data()
+
+    def _sync_read_keys(self, state: XgimiState) -> None:
+        """Values XGIMI keeps in Settings.Global but only the menu writes."""
+        for setting in SETTINGS:
+            if not setting.read_key:
+                continue
+            raw = state.settings.get(setting.read_key)
+            if raw is None:
+                continue
+            value = raw.split(":", 1)[0].strip().lower() in ("1", "true", "on")
+            if self._globals.get(setting.key) != value:
+                self._set_value(setting.key, value, "device")
+
+    def _sync_native(self, state: XgimiState) -> None:
+        """Take picture values from the PQ pipeline while a video is shown.
+
+        Without an active video stream the HAL reports a stale default
+        profile, so the values are only trusted for HDMI inputs and for apps
+        with an active media session.
+        """
+        signal = self._signal()
+        hdr = signal.partition("|")[2]
+        is_dolby = hdr in ("DOLBYVISION", "DV")
+        gm_mode = GM_PICTURE_MODES.get(state.gm_picture_mode) if state.gm_picture_mode is not None else None
+        stored_mode = self._modes.get(signal)
+        if gm_mode and not is_dolby and (stored_mode is None or stored_mode in GM_PICTURE_MODES.values()):
+            # The XGIMI HAL only tracks Vivid/Movie/Game/Standard/Sport; never
+            # overwrite a FilmMaker/ISF mode learned from the log stream.
+            if stored_mode != gm_mode:
+                self._set_value("picture_mode", gm_mode, "device", signal)
+        video = signal.startswith("hdmi") or state.playing
+        if not video or not state.pq:
+            return
+        profile = self._profile_key(signal)
+        if profile is None:
+            return
+        current = self._profiles.get(profile, {})
+        for setting in SETTINGS:
+            if not setting.native or not setting.native_read or self._is_live_key(setting):
+                continue
+            raw = state.pq.get(setting.native)
+            if raw is None:
+                continue
+            inverse = {str(v): k for k, v in setting.native_map.items()}
+            value = self._normalize(setting, inverse.get(str(raw), raw))
+            if setting.kind == "picker" and setting.options and value not in setting.options:
+                continue
+            if current.get(setting.key) != value:
+                self._set_value(setting.key, value, "native", signal)
 
     def _maybe_auto_read(self, state: XgimiState) -> None:
         """Read the picture menu once for every new, stable picture profile."""

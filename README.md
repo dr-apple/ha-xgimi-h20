@@ -42,13 +42,19 @@ Der H20 speichert Bildwerte **pro Profil** – also pro Quelle (Google TV, HDMI 
 
 Die Bild-Datenbank des MediaTek-Chips ist für ADB gesperrt (nur System-Apps dürfen schreiben). Deshalb gibt es drei Wege, die die Integration automatisch wählt:
 
-1. **XGIMI-Systemeinstellungen** (Lichtleistung, Farbraum): werden direkt gesetzt – **unsichtbar und dauerhaft**, der XGIMI-Dienst übernimmt sie sofort.
+1. **XGIMI-Systemeinstellungen** (Lichtleistung, Farbraum, Farbtemperatur): werden direkt gesetzt – **unsichtbar und dauerhaft**, der XGIMI-Dienst übernimmt sie sofort.
 2. **Dauerhaft (über das Bildmenü)** – Standard: Die Integration bedient das offizielle Bildmenü des Beamers per Fernbedienungs-Tasten. Das Seitenpanel ist dabei **3–20 Sekunden sichtbar**. Jeder Schritt wird über das Systemlog verifiziert, der Wert ist danach genau so gespeichert, als hättest du ihn per Fernbedienung geändert. Funktioniert in allen Sprachen der Firmware.
 3. **Live (unsichtbar)**: Werte werden direkt in die Bildpipeline geschrieben – **sofort und unsichtbar**, aber **nicht dauerhaft** (weg beim App-/Quellenwechsel, das Beamer-Menü zeigt weiter den alten Wert). Pro-Stream-Werte (Helligkeit, Kontrast, Schärfe, AI PQ, lokaler Kontrast) wirken live nur während einer laufenden Wiedergabe. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.
 
 Den Modus stellst du jederzeit unter **Einstellungen → Geräte & Dienste → XGIMI H20 → Konfigurieren** um. Pro Aufruf lässt er sich im Dienst `xgimi_h20.set_settings` mit `mode: live` oder `mode: menu` überschreiben.
 
-**Aktuelle Werte**: Änderungen – auch per Fernbedienung – kommen über einen dauerhaften Logcat-Stream **in Echtzeit** in HA an. Der letzte Stand wird über Neustarts gespeichert. Für einen vollständigen Abgleich gibt es den Button **„Bildeinstellungen einlesen"** (liest beide Menüseiten, Panel ca. 30 s sichtbar) bzw. die Option **„Neue Bildprofile automatisch einlesen“**: Sie liest das Menü einmalig, sobald ein noch unbekanntes Profil stabil läuft (z. B. beim ersten Dolby-Vision-Film) – bekannte Profile werden nie erneut eingelesen.
+**Aktuelle Werte – ohne Menü**: Die Integration liest fast alles still mit:
+- **Während ein Video läuft** (HDMI-Eingang oder App mit aktiver Wiedergabe) übernimmt sie alle 30 s die Werte direkt aus der Bildpipeline: Helligkeit, Kontrast, Sättigung, Schärfe, Gamma, Rauschunterdrückung, MPEG-NR, AI PQ, DI-Filmmodus, Adaptive Luma, lokaler Kontrast, MaxLebhaft, Konturenglättung, Blaulicht, HDMI-RGB, PC-Modus. (Ohne Video liefert die Pipeline nur Standardwerte – dann bleibt der zuletzt bekannte Stand stehen.)
+- **Bildmodus** (Standard, Film, Lebhaft, Spiel, Sport) aus dem XGIMI-Displaydienst; Dolby-Vision-, Filmmaker- und ISF-Modi aus dem Logstream.
+- **Lichtleistung, Farbraum, Farbtemperatur, Super Frame, Hohe Leistung** aus den XGIMI-Systemeinstellungen.
+- **Jede Änderung im Bildmenü** – auch per Fernbedienung – kommt über einen dauerhaften Logcat-Stream in Echtzeit an.
+
+Nur MEMC-Stufe, dynamischer Schwarzwert, Leuchtdichte-Boost, Auto-Lichtleistung und Filmmaker-Automatik stehen nirgends außer im Menü. Für die gibt es den Button **„Bildeinstellungen einlesen"** bzw. die Option **„Neue Bildprofile automatisch einlesen"**, die das Menü nur bei einem noch völlig unbekannten Profil einmal liest. Der letzte Stand wird über Neustarts gespeichert.
 
 ## Installation
 

@@ -63,6 +63,8 @@ class PictureSetting:
     global_map: dict[str, str] = field(default_factory=dict)
     native: str | None = None
     native_map: dict[str, str] = field(default_factory=dict)
+    native_read: bool = True
+    read_key: str | None = None
     entity_category: str | None = None
     enabled_default: bool = True
 
@@ -126,7 +128,9 @@ SETTINGS: tuple[PictureSetting, ...] = (
         "color_temperature",
         "picker",
         icon="mdi:thermometer",
-        options=("Standard", "D65", "Movie", "Color temperature 2", "Fresh"),
+        options=("16", "0", "17", "24", "-1"),
+        aliases={"D65": "16", "Standard": "0", "Color temperature 2": "17", "Fresh": "17", "Movie": "24"},
+        global_key="gm_projector_color_temperature",
     ),
     PictureSetting(
         "picture_projector_dynamic_black_enhancement", "dynamic_black", "switch", icon="mdi:circle-half-full"
@@ -167,7 +171,9 @@ SETTINGS: tuple[PictureSetting, ...] = (
         native="PC_Mode",
         enabled_default=False,
     ),
-    PictureSetting("tv_picture_video_psf", "super_frame", "switch", icon="mdi:animation-play"),
+    PictureSetting(
+        "tv_picture_video_psf", "super_frame", "switch", icon="mdi:animation-play", read_key="CFG_SUPER_FRAME"
+    ),
     PictureSetting(
         "tv_picture_advance_video_dnr", "noise_reduction", "picker", icon="mdi:blur", options=LEVELS, native="NR"
     ),
@@ -196,7 +202,14 @@ SETTINGS: tuple[PictureSetting, ...] = (
         aliases={"Auto": "On"},
         native="Film_Mode",
     ),
-    PictureSetting("tv_picture_video_maxvivid", "max_vivid", "picker", icon="mdi:palette-advanced", options=LEVELS),
+    PictureSetting(
+        "tv_picture_video_maxvivid",
+        "max_vivid",
+        "picker",
+        icon="mdi:palette-advanced",
+        options=LEVELS,
+        native="Dynamic_Color_Booster",
+    ),
     PictureSetting(
         "tv_picture_video_adaptive_luma_control",
         "adaptive_luma",
@@ -214,7 +227,12 @@ SETTINGS: tuple[PictureSetting, ...] = (
         native="Local_Contrast",
     ),
     PictureSetting(
-        "tv_picture_video_de_counter", "de_contour", "picker", icon="mdi:gradient-horizontal", options=LEVELS
+        "tv_picture_video_de_counter",
+        "de_contour",
+        "picker",
+        icon="mdi:gradient-horizontal",
+        options=LEVELS,
+        native="UCD_MODE",
     ),
     PictureSetting(
         "tv_picture_video_low_bluelight",
@@ -227,12 +245,19 @@ SETTINGS: tuple[PictureSetting, ...] = (
         native_map={"Off": "off"},
     ),
     PictureSetting(
-        "picture_advanced_performance_mode", "high_power", "switch", icon="mdi:lightning-bolt"
+        "picture_advanced_performance_mode",
+        "high_power",
+        "switch",
+        icon="mdi:lightning-bolt",
+        read_key="picture_advanced_performance_mode",
     ),
 )
 
 SETTINGS_BY_KEY = {setting.key: setting for setting in SETTINGS}
 
+COLOR_TEMPERATURE_NAMES = {"16": "d65", "0": "standard", "17": "color_temperature_2", "24": "movie", "-1": "color_temperature_3"}
+# XGIMI display HAL picture mode (IGmTvManager.getPictureMode) -> MediaTek mode
+GM_PICTURE_MODES = {0: "Vivid", 1: "Movie", 4: "Game", 8: "Standard", 9: "Sport"}
 COLOR_SPACE_NAMES = {"4": "original", "3": "rec709", "2": "dci_p3", "1": "bt2020", "7": "adobe_rgb"}
 
 SERVICE_SET_SETTINGS = "set_settings"

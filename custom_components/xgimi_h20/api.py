@@ -39,6 +39,8 @@ PQ_TX_GET_GLOBAL_NON_AWARE = 54
 PQ_TX_SET_PARAMS_BY_GLOBAL = 160
 PQ_TX_SET_PARAMS = 159
 FOCUS_SERVICE = "xgimi.hardware.gmpf.IProjectorFocusManager/default"
+GM_TV_SERVICE = "xgimi.hardware.gmpf.IGmTvManager/default"
+GM_TX_GET_PICTURE_MODE = 34
 
 PICTURE_ACTIVITY = (
     "com.mediatek.tv.settings/.displayandsound.picture.PictureActivity"
@@ -102,6 +104,8 @@ class XgimiState:
     settings: dict[str, str | None] = field(default_factory=dict)
     props: dict[str, str] = field(default_factory=dict)
     foreground_package: str | None = None
+    playing: bool = False
+    gm_picture_mode: int | None = None
     updated: float = 0.0
 
 
@@ -259,6 +263,10 @@ class XgimiH20:
         parts += [f"settings get global {key}" for key in GLOBAL_KEYS]
         parts += [f"settings get system {key}" for key in SYSTEM_KEYS]
         parts += [f"getprop {prop}" for prop in PROPS]
+        parts += [
+            "dumpsys media_session 2>/dev/null | grep -c 'state=PlaybackState {state=PLAYING'",
+            f"service call {GM_TV_SERVICE} {GM_TX_GET_PICTURE_MODE} i32 0",
+        ]
         command = f"; echo {_SEP}; ".join(parts)
         out = await self.shell(command, timeout=20.0)
         chunks = [chunk.strip() for chunk in out.split(_SEP)]
@@ -286,6 +294,13 @@ class XgimiH20:
             state.props[prop] = chunks[idx]
             idx += 1
         state.foreground_package = state.settings.get("running_package_name")
+        try:
+            state.playing = int(chunks[idx].split()[0]) > 0
+        except (ValueError, IndexError):
+            state.playing = False
+        words = parse_parcel_words(chunks[idx + 1])
+        if len(words) >= 2 and words[0] == 0:
+            state.gm_picture_mode = words[1]
         return state
 
     # ------------------------------------------------------------- writing

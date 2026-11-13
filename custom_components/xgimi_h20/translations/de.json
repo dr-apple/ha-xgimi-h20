@@ -70,11 +70,11 @@
       "color_temperature": {
         "name": "Farbtemperatur",
         "state": {
-          "standard": "Standard",
           "d65": "D65",
+          "standard": "Standard",
+          "color_temperature_2": "Farbtemperatur 2 / Frisch",
           "movie": "Film",
-          "color_temperature_2": "Farbtemperatur 2",
-          "fresh": "Frisch"
+          "color_temperature_3": "Farbtemperatur 3"
         }
       },
       "gamma": {

@@ -9,13 +9,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import XgimiConfigEntry
-from .const import COLOR_SPACE_NAMES, SETTINGS, PictureSetting
+from .const import COLOR_SPACE_NAMES, COLOR_TEMPERATURE_NAMES, SETTINGS, PictureSetting
 from .entity import XgimiSettingEntity
 
 
 def to_option(setting: PictureSetting, value: str) -> str:
     if setting.key == "picture_projector_color_space":
         return COLOR_SPACE_NAMES.get(value, value)
+    if setting.key == "picture_projector_color_temperature":
+        return COLOR_TEMPERATURE_NAMES.get(value, value)
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
 

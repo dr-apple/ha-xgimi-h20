@@ -39,7 +39,7 @@ from .menu import MenuRobot, load_i18n
 
 _LOGGER = logging.getLogger(__name__)
 
-STORE_VERSION = 2
+STORE_VERSION = 1
 STREAM_MAX_AGE = 900
 
 

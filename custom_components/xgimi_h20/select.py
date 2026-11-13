@@ -37,6 +37,25 @@ class XgimiSelect(XgimiSettingEntity, SelectEntity):
         self._attr_options = list(self._to_canonical)
 
     @property
+    def options(self) -> list[str]:
+        if self.setting.key != "picture_mode":
+            return self._attr_options
+        raw = self.coordinator.data.state.settings.get("TvSourcesStatus") or ""
+        hdr = raw.partition("|")[2].upper()
+        dolby = [o for o in self._attr_options if o.startswith("dolbyvision")]
+        normal = [o for o in self._attr_options if not o.startswith("dolbyvision")]
+        if hdr in ("DOLBYVISION", "DV"):
+            allowed = dolby
+        elif hdr in ("HDR10", "HDR10PLUS"):
+            allowed = normal
+        else:
+            allowed = [o for o in normal if o != "imaxenhanced"]
+        current = self.current_option
+        if current and current not in allowed:
+            allowed = [*allowed, current]
+        return allowed
+
+    @property
     def current_option(self) -> str | None:
         value = self.raw_value
         if value is None:

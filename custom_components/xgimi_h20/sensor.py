@@ -20,6 +20,17 @@ from . import XgimiConfigEntry
 from .coordinator import XgimiData
 from .entity import XgimiEntity
 
+HDR_NAMES = {
+    "SDR": "SDR",
+    "HDR10": "HDR10",
+    "HDR10PLUS": "HDR10+",
+    "HLG": "HLG",
+    "DOLBYVISION": "Dolby Vision",
+    "DV": "Dolby Vision",
+    "TECHNT": "Technicolor",
+    "HDRVIVID": "HDR Vivid",
+}
+
 POWER_STATES = {"Awake": "on", "Dreaming": "screensaver", "Asleep": "standby", "Dozing": "standby"}
 
 NATIVE_ATTRS = (
@@ -42,6 +53,8 @@ def _signal(data: XgimiData, index: int) -> str | None:
             return "Google TV"
         if lower.startswith("hdmi"):
             return f"HDMI {lower[4:]}".strip()
+    if index == 1:
+        return HDR_NAMES.get(value.upper(), value)
     return value
 
 

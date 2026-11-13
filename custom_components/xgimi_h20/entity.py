@@ -63,7 +63,11 @@ class XgimiSettingEntity(XgimiEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         source = self.coordinator.data.sources.get(self.setting.key)
-        attrs: dict[str, Any] = {"source": source, "menu_key": self.setting.key}
+        attrs: dict[str, Any] = {
+            "source": source,
+            "menu_key": self.setting.key,
+            "profile": self.coordinator.data.profile,
+        }
         if source == "live":
             attrs["persistent"] = False
         return attrs

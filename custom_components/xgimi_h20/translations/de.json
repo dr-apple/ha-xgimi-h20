@@ -57,7 +57,14 @@
           "sport": "Sport",
           "filmmaker": "Filmemacher-Modus",
           "user": "ISF-Tag",
-          "energy_saving": "ISF-Nacht"
+          "energy_saving": "ISF-Nacht",
+          "dolbyvisionbright": "Dolby Vision – hell",
+          "dolbyvisiondark": "Dolby Vision – dunkel",
+          "dolbyvisionvivid": "Dolby Vision – lebhaft",
+          "dolbyvisioniq": "Dolby Vision – IQ",
+          "dolbyvisiongame": "Dolby Vision – Spiel",
+          "dolbyvisionfilmmaker": "Dolby Vision Filmmaker-Modus",
+          "dolbyvisioniqfilmmaker": "Dolby Vision IQ Filmmaker-Modus"
         }
       },
       "color_temperature": {

@@ -86,6 +86,13 @@ SETTINGS: tuple[PictureSetting, ...] = (
             "FilmMaker",
             "User",
             "Energy Saving",
+            "DolbyVisionBright",
+            "DolbyVisionDark",
+            "DolbyVisionVivid",
+            "DolbyVisionIQ",
+            "DolbyVisionGame",
+            "DolbyVisionFilmmaker",
+            "DolbyVisionIQFilmmaker",
         ),
     ),
     PictureSetting(

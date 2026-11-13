@@ -430,20 +430,32 @@ _PQMODE = re.compile(
 )
 
 
-def parse_log_line(line: str) -> tuple[str, str] | None:
-    """Return ``(key, value)`` for a picture-relevant log line.
+_HDR = re.compile(r"hdrType = (?P<hdr>[A-Za-z0-9+]+)")
+_SRC = re.compile(r"source = (?P<src>[A-Za-z0-9]+)")
 
-    ``key`` is a settings-panel preference key, or ``picture_mode``.
+
+def parse_log_line(line: str) -> tuple[str, str, dict[str, str]] | None:
+    """Return ``(key, value, meta)`` for a picture-relevant log line.
+
+    ``key`` is a settings-panel preference key, or ``picture_mode``. ``meta``
+    carries ``hdr`` / ``source`` when the line names them.
     """
+    meta: dict[str, str] = {}
+    hdr = _HDR.search(line)
+    if hdr:
+        meta["hdr"] = hdr.group("hdr").upper()
+    src = _SRC.search(line)
+    if src:
+        meta["source"] = src.group("src").lower()
     match = _PM_VALUE.search(line)
     if match:
         value = match.group("value").strip()
         if value.startswith("Pair{"):
             return None
-        return match.group("key"), value
+        return match.group("key"), value, meta
     match = _PQMODE.search(line)
     if match and match.group("mode") != "null":
-        return "picture_mode", match.group("mode").strip()
+        return "picture_mode", match.group("mode").strip(), meta
     return None
 
 

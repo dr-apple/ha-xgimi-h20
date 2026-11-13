@@ -39,7 +39,7 @@ from .menu import MenuRobot, load_i18n
 
 _LOGGER = logging.getLogger(__name__)
 
-STORE_VERSION = 1
+STORE_VERSION = 2
 STREAM_MAX_AGE = 900
 
 
@@ -50,6 +50,7 @@ class XgimiData:
     state: XgimiState = field(default_factory=XgimiState)
     values: dict[str, Any] = field(default_factory=dict)
     sources: dict[str, str] = field(default_factory=dict)
+    profile: str | None = None
     last_result: str | None = None
     busy: bool = False
 
@@ -71,7 +72,12 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self.client = client
         self.robot: MenuRobot | None = None
         self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}")
-        self._values: dict[str, Any] = {}
+        # Picture values are stored per firmware profile:
+        #   modes[signal] -> picture mode, profiles[signal|mode] -> {key: value}
+        # where signal = "<source>|<hdr type>", e.g. "hdmi1|DOLBYVISION".
+        self._modes: dict[str, str] = {}
+        self._profiles: dict[str, dict[str, Any]] = {}
+        self._globals: dict[str, Any] = {}
         self._sources: dict[str, str] = {}
         self._state = XgimiState()
         self._last_result: str | None = None
@@ -88,8 +94,17 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
 
     async def async_setup(self) -> None:
         stored = await self._store.async_load() or {}
-        self._values = dict(stored.get("values", {}))
-        self._sources = {key: "stored" for key in self._values}
+        self._modes = dict(stored.get("modes", {}))
+        self._profiles = {k: dict(v) for k, v in stored.get("profiles", {}).items()}
+        if "values" in stored and not self._profiles:
+            # v1.0.x stored one flat dict (read in Google TV / SDR).
+            old = dict(stored["values"])
+            mode = old.pop("picture_mode", None)
+            if mode:
+                self._modes["mm|SDR"] = mode
+                self._profiles[f"mm|SDR|{mode}"] = {
+                    k: v for k, v in old.items() if not SETTINGS_BY_KEY.get(k) or not SETTINGS_BY_KEY[k].global_key
+                }
         i18n = await self.hass.async_add_executor_job(load_i18n)
         self.robot = MenuRobot(self.client, i18n)
 
@@ -127,15 +142,18 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             await asyncio.sleep(delay)
 
     @callback
-    def _on_log_event(self, key: str, value: str) -> None:
+    def _on_log_event(self, key: str, value: str, meta: dict[str, str] | None = None) -> None:
         setting = SETTINGS_BY_KEY.get(key)
         if setting is None:
             return
         normalized = self._normalize(setting, value)
-        if normalized is None or self._values.get(key) == normalized:
+        if normalized is None:
             return
-        _LOGGER.debug("Log event %s = %s", key, normalized)
-        self._set_value(key, normalized, "device")
+        signal = self._signal(meta)
+        if self._current_value(key, signal) == normalized:
+            return
+        _LOGGER.debug("Log event %s = %s (%s)", key, normalized, signal)
+        self._set_value(key, normalized, "device", signal)
         self.async_set_updated_data(self._data())
 
     # ------------------------------------------------------------- values
@@ -156,18 +174,63 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         value = setting.aliases.get(value, value)
         return value
 
-    def _set_value(self, key: str, value: Any, source: str) -> None:
-        self._values[key] = value
+    def _signal(self, meta: dict[str, str] | None = None) -> str:
+        """Current "<source>|<hdr>" signal key, refined by log metadata."""
+        raw = self._state.settings.get("TvSourcesStatus") or "mm|SDR"
+        source, _, hdr = raw.partition("|")
+        if meta:
+            source = meta.get("source", source)
+            hdr = meta.get("hdr", hdr)
+        return f"{source.lower()}|{(hdr or 'SDR').upper()}"
+
+    def _profile_key(self, signal: str | None = None) -> str | None:
+        signal = signal or self._signal()
+        mode = self._modes.get(signal)
+        return f"{signal}|{mode}" if mode else None
+
+    def _current_value(self, key: str, signal: str | None = None) -> Any:
+        setting = SETTINGS_BY_KEY.get(key)
+        if setting and setting.global_key:
+            return self._globals.get(key)
+        signal = signal or self._signal()
+        if key == "picture_mode":
+            return self._modes.get(signal)
+        profile = self._profile_key(signal)
+        return self._profiles.get(profile, {}).get(key) if profile else None
+
+    def _set_value(self, key: str, value: Any, source: str, signal: str | None = None) -> None:
+        setting = SETTINGS_BY_KEY.get(key)
+        if setting and setting.global_key:
+            self._globals[key] = value
+        else:
+            signal = signal or self._signal()
+            if key == "picture_mode":
+                self._modes[signal] = value
+            else:
+                profile = self._profile_key(signal)
+                if profile is None:
+                    return
+                self._profiles.setdefault(profile, {})[key] = value
         self._sources[key] = source
-        self._store.async_delay_save(lambda: {"values": dict(self._values)}, 5)
+        self._store.async_delay_save(
+            lambda: {"modes": dict(self._modes), "profiles": {k: dict(v) for k, v in self._profiles.items()}},
+            5,
+        )
 
     def _data(self) -> XgimiData:
+        signal = self._signal()
+        profile = self._profile_key(signal)
+        values: dict[str, Any] = dict(self._profiles.get(profile, {})) if profile else {}
+        if signal in self._modes:
+            values["picture_mode"] = self._modes[signal]
+        values.update(self._globals)
         return XgimiData(
             state=self._state,
-            values=dict(self._values),
-            sources=dict(self._sources),
+            values=values,
+            sources={k: v for k, v in self._sources.items() if k in values},
             last_result=self._last_result,
             busy=self._busy,
+            profile=profile,
         )
 
     # ------------------------------------------------------------ polling
@@ -190,7 +253,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         for setting in SETTINGS:
             if setting.global_key and state.settings.get(setting.global_key) is not None:
                 value = self._normalize(setting, state.settings[setting.global_key])
-                if self._values.get(setting.key) != value:
+                if self._globals.get(setting.key) != value:
                     self._set_value(setting.key, value, "device")
         if (
             not self._snapshot_done
@@ -249,6 +312,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 if menu_changes:
                     assert self.robot is not None
                     results = await self.robot.async_apply(menu_changes)
+                    results.sort(key=lambda r: r.key != "picture_mode")
                     for result in results:
                         if result.value is not None:
                             setting = SETTINGS_BY_KEY[result.key]
@@ -279,7 +343,8 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 raise HomeAssistantError(str(err)) from err
             finally:
                 self._busy = False
-            for key, value in values.items():
+            ordered = sorted(values.items(), key=lambda kv: kv[0] != "picture_mode")
+            for key, value in ordered:
                 setting = SETTINGS_BY_KEY.get(key)
                 if setting is not None and value is not None:
                     self._set_value(key, self._normalize(setting, value), "menu")

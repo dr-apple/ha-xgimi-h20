@@ -57,7 +57,14 @@
           "sport": "Sport",
           "filmmaker": "Filmmaker",
           "user": "ISF Day",
-          "energy_saving": "ISF Night"
+          "energy_saving": "ISF Night",
+          "dolbyvisionbright": "Dolby Vision Bright",
+          "dolbyvisiondark": "Dolby Vision Dark",
+          "dolbyvisionvivid": "Dolby Vision Vivid",
+          "dolbyvisioniq": "Dolby Vision IQ",
+          "dolbyvisiongame": "Dolby Vision Game",
+          "dolbyvisionfilmmaker": "Dolby Vision Filmmaker",
+          "dolbyvisioniqfilmmaker": "Dolby Vision IQ Filmmaker"
         }
       },
       "color_temperature": {

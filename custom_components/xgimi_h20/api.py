@@ -199,8 +199,8 @@ class XgimiH20:
     @staticmethod
     async def _safe_close(device: AdbDeviceTcpAsync) -> None:
         try:
-            await device.close()
-        except Exception:  # noqa: BLE001
+            await asyncio.wait_for(device.close(), 3)
+        except Exception:  # noqa: BLE001 - includes TimeoutError
             pass
 
     @property

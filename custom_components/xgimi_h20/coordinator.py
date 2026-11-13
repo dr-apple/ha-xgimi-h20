@@ -115,12 +115,18 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             )
 
     async def async_shutdown(self) -> None:
+        # Cancel the stream task first: its blocking read holds the ADB
+        # stream lock, so closing the link before would deadlock.
+        task, self._stream_task = self._stream_task, None
+        if task is not None:
+            task.cancel()
+            await asyncio.wait({task}, timeout=5)
         if self._stream is not None:
             await self._stream.stop()
-        if self._stream_task is not None:
-            self._stream_task.cancel()
-            self._stream_task = None
-        await self.client.async_close()
+        try:
+            await asyncio.wait_for(self.client.async_close(), 5)
+        except TimeoutError:
+            pass
         await super().async_shutdown()
 
     async def _stream_loop(self) -> None:

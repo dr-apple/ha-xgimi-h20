@@ -83,6 +83,9 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         self._disabled: dict[str, list[str]] = {}
         self._auto_tried: set[str] = set()
         self._pending_signal: str | None = None
+        self._native_signal: str | None = None
+        self._native_base: tuple | None = None
+        self._native_trusted = False
         self._sources: dict[str, str] = {}
         self._state = XgimiState()
         self._last_result: str | None = None
@@ -313,7 +316,23 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             if stored_mode != gm_mode:
                 self._set_value("picture_mode", gm_mode, "device", signal)
         video = signal.startswith("hdmi") or state.playing
-        if not video or not state.pq:
+        if not video or not state.pq or is_dolby:
+            # Dolby Vision runs through its own pipeline: the PQ status keeps
+            # showing the previous (SDR/HDR) values, so it is never used.
+            return
+        fingerprint = tuple(
+            str(state.pq.get(s.native)) for s in SETTINGS if s.native and s.native_read
+        )
+        if signal != self._native_signal:
+            # After a signal change only trust the pipeline once it has
+            # actually re-applied values (a frozen status stays identical).
+            first = self._native_signal is None
+            self._native_signal = signal
+            self._native_base = fingerprint
+            self._native_trusted = first
+        elif not self._native_trusted and fingerprint != self._native_base:
+            self._native_trusted = True
+        if not self._native_trusted:
             return
         profile = self._profile_key(signal)
         if profile is None:

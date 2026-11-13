@@ -440,7 +440,7 @@ _PM_VALUE = re.compile(
     r"setPreferenceValue\(\)\s+key = (?P<key>[\w.]+), newValue = (?P<value>.*?), pqMode = "
 )
 _PQMODE = re.compile(
-    r"(?:pqMode = |getPQMode\(\) called = |pqModeStateFlow\(\) called = |"
+    r"(?:pqMode = |getPQMode\(\) called = |queryPQMode\(\) called = |pqModeStateFlow\(\) called = |"
     r"PqModeManager changed, value = )(?P<mode>[A-Za-z][\w ]*?)(?:[,，]|\s*$)"
 )
 
@@ -467,6 +467,7 @@ def parse_log_line(line: str) -> tuple[str, str, dict[str, str]] | None:
         value = match.group("value").strip()
         if value.startswith("Pair{"):
             return None
+        meta["menu"] = "1"
         return match.group("key"), value, meta
     match = _PQMODE.search(line)
     if match and match.group("mode") != "null":

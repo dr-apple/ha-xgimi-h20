@@ -163,6 +163,18 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         normalized = self._normalize(setting, value)
         if normalized is None:
             return
+        if key == "picture_mode":
+            # Mode changes race with signal changes: only accept lines that
+            # name the HDR type themselves, and only plausible combinations.
+            meta = meta or {}
+            hdr = meta.get("hdr")
+            if not hdr:
+                if not meta.get("menu"):
+                    return
+                hdr = self._signal().partition("|")[2]
+            dolby_signal = hdr in ("DOLBYVISION", "DV")
+            if str(normalized).startswith("DolbyVision") != dolby_signal:
+                return
         signal = self._signal(meta)
         if self._current_value(key, signal) == normalized:
             return
@@ -316,9 +328,10 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
             if stored_mode != gm_mode:
                 self._set_value("picture_mode", gm_mode, "device", signal)
         video = signal.startswith("hdmi") or state.playing
-        if not video or not state.pq or is_dolby:
-            # Dolby Vision runs through its own pipeline: the PQ status keeps
-            # showing the previous (SDR/HDR) values, so it is never used.
+        if not video or not state.pq or hdr != "SDR":
+            # Only SDR matches the picture menu 1:1. Dolby Vision runs through
+            # its own pipeline (the status keeps the previous SDR values) and
+            # HDR10 reports another stream's per-stream values (contrast, NR).
             return
         fingerprint = tuple(
             str(state.pq.get(s.native)) for s in SETTINGS if s.native and s.native_read

@@ -35,7 +35,14 @@ def _signal(data: XgimiData, index: int) -> str | None:
     raw = data.state.settings.get("TvSourcesStatus")
     if not raw or "|" not in raw:
         return None
-    return raw.split("|")[index]
+    value = raw.split("|")[index]
+    if index == 0:
+        lower = value.lower()
+        if lower in ("mm", "dtv", ""):
+            return "Google TV"
+        if lower.startswith("hdmi"):
+            return f"HDMI {lower[4:]}".strip()
+    return value
 
 
 def _hours(data: XgimiData) -> float | None:

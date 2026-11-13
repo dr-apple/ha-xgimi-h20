@@ -9,6 +9,6 @@
   "issue_tracker": "https://github.com/dr-apple/ha-xgimi-h20/issues",
   "loggers": ["adb_shell"],
   "requirements": ["adb-shell[async]>=0.4.4"],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "zeroconf": [{ "type": "_androidtvremote2._tcp.local.", "name": "xr13a*" }]
 }

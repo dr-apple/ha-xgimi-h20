@@ -10,6 +10,8 @@ Full local integration for the **XGIMI H20** (Google TV, model `XR13A`) – no c
 
 ![How it works: Home Assistant ⇄ ADB ⇄ XGIMI H20](docs/images/how-it-works.svg)
 
+> 🎛️ Includes a ready-made [Liquid Glass dashboard](#dashboard).
+
 ## What you get
 
 **Picture settings (read + write)**
@@ -96,6 +98,33 @@ data:
   device_id: <XGIMI H20>
   keys: [HOME]
 ```
+
+## Dashboard
+
+A ready-made dashboard view in an Apple / *Liquid Glass* style: "Now playing" card with HDR badge, round control-centre buttons (power, autofocus, picture menu, read settings), picture-mode tiles that adapt to SDR / Dolby Vision, a full remote, and every picture setting grouped into *Picture*, *Enhancements*, *Fine tuning* and *Info*. In standby it collapses to the power button and the remote.
+
+![Dashboard: now playing, control buttons, picture modes and remote](docs/images/dashboard-top.jpg)
+
+![Dashboard: picture, enhancement, fine-tuning and info tiles](docs/images/dashboard-picture.jpg)
+
+*Real screenshots (German UI) with the optional visionOS / Liquid Glass theme.*
+
+**Get it running**
+
+1. Install from HACS (*Frontend*): [button-card](https://github.com/custom-cards/button-card) and [firemote-card](https://github.com/PRProd/HA-Firemote) (remote).
+2. Optional for the look: the theme [homeassistant-visionos-theme](https://github.com/Nezz/homeassistant-visionos-theme) ("Liquid Glass") – any dark theme works too.
+3. Create a new dashboard, open it → ✏️ → ⋮ → *Raw configuration editor* and paste the view under `views:`:
+   - English Home Assistant: [`examples/dashboard-beamer.en.yaml`](examples/dashboard-beamer.en.yaml)
+   - German Home Assistant: [`examples/dashboard-beamer.de.yaml`](examples/dashboard-beamer.de.yaml)
+4. Replace the three entities of the other integrations with yours:
+
+| In the YAML | What it is |
+|---|---|
+| `media_player.xgimi_h20_google_tv` | projector from the **Android TV Remote** integration (power button) |
+| `remote.xgimi_h20_google_tv` | remote entity of the same integration (firemote-card) |
+| `media_player.xgimi_h20_adb` | projector from the **Android TV** (ADB) integration (firemote-card) |
+
+All `xgimi_h20_*` entities match the default names this integration creates for a device called "XGIMI H20". If you renamed the device, search & replace the prefix. To use the theme, add `theme: Liquid Glass` to the view.
 
 ## Examples
 

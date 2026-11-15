@@ -1,0 +1,1489 @@
+# XGIMI H20 – projector dashboard (Liquid Glass style)
+# Paste: dashboard → ⋮ → Edit → ⋮ → Raw configuration editor → under "views:"
+# Requires (HACS, frontend): button-card, firemote-card
+# Optional: theme "Liquid Glass" from https://github.com/Nezz/homeassistant-visionos-theme  →  add "theme: Liquid Glass" to the view
+# Entity IDs are for an English Home Assistant with the device name "XGIMI H20".
+# Adjust: media_player.xgimi_h20_google_tv / remote.xgimi_h20_google_tv (Android TV Remote integration, power + remote)
+#         media_player.xgimi_h20_adb (Android TV integration via ADB, for firemote-card)
+- title: Projector
+  path: beamer
+  type: sections
+  max_columns: 4
+  icon: mdi:projector
+  badges:
+  - type: entity
+    entity: update.xgimi_h20
+    show_name: true
+    name: Update
+    visibility:
+    - condition: state
+      entity: update.xgimi_h20
+      state: 'on'
+  sections:
+  - type: grid
+    column_span: 2
+    cards:
+    - type: custom:button-card
+      entity: sensor.xgimi_h20_power_state
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: more-info
+        entity: sensor.xgimi_h20_foreground_app
+      triggers_update:
+      - sensor.xgimi_h20_foreground_app
+      - sensor.xgimi_h20_hdr_format
+      - sensor.xgimi_h20_input_source
+      - select.xgimi_h20_picture_mode
+      custom_fields:
+        art: |-
+          [[[
+                    const on = ['on','screensaver'].includes(entity.state);
+                    const a = (states['sensor.xgimi_h20_foreground_app']||{}).state || '';
+                    let icon = 'mdi:projector';
+                    if (on) icon = a.startsWith('HDMI') ? 'mdi:video-input-hdmi' : 'mdi:play';
+                    return `<ha-icon icon="${icon}"></ha-icon>`;
+                  ]]]
+        eyebrow: '[[[ return entity.state === ''screensaver'' ? ''Paused'' : ([''on''].includes(entity.state) ? ''Now playing'' : ''XGIMI H20''); ]]]'
+        title: |-
+          [[[
+                    if (!['on','screensaver'].includes(entity.state)) return 'Projector off';
+                    const a = states['sensor.xgimi_h20_foreground_app'];
+                    return a && !['unknown','unavailable'].includes(a.state) ? a.state : 'XGIMI H20';
+                  ]]]
+        meta: |-
+          [[[
+                    if (!['on','screensaver'].includes(entity.state)) return '<span class="sub">Standby</span>';
+                    const M = {
+            standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+            vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+            game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+            filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+            energy_saving:['ISF Night','mdi:weather-night'],
+            dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+            dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+            dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+            dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']};
+                    const s = id => (states[id] && !['unknown','unavailable'].includes(states[id].state)) ? states[id].state : null;
+                    const hdr = s('sensor.xgimi_h20_hdr_format'), src = s('sensor.xgimi_h20_input_source'), m = s('select.xgimi_h20_picture_mode'), a = s('sensor.xgimi_h20_foreground_app');
+                    const out = [];
+                    if (hdr) out.push('<span class="badge' + (hdr === 'SDR' ? ' quiet' : '') + '">' + hdr + '</span>');
+                    const line = [];
+                    if (m) line.push('Picture mode ' + (M[m] ? M[m][0] : m));
+                    if (src && src !== a) line.push(src);
+                    if (line.length) out.push('<span class="sub">' + line.join(' · ') + '</span>');
+                    return out.join('');
+                  ]]]
+      styles:
+        grid:
+        - grid-template-areas: '"art eyebrow" "art title" "art meta"'
+        - grid-template-columns: auto 1fr
+        - grid-template-rows: auto auto auto
+        - column-gap: 18px
+        - align-items: center
+        card:
+        - padding: 20px
+        - border-radius: 28px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        custom_fields:
+          art:
+          - width: 88px
+          - height: 88px
+          - border-radius: 20px
+          - display: flex
+          - align-items: center
+          - justify-content: center
+          - background: '[[[ return [''on'',''screensaver''].includes(states[''sensor.xgimi_h20_power_state''].state) ? ''linear-gradient(145deg,#5e5ce6 0%,#0a84ff 55%,#64d2ff 100%)'' : ''linear-gradient(145deg,#48484a,#2c2c2e)''; ]]]'
+          - box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 24px rgba(0,0,0,.35)
+          - color: white
+          - --mdc-icon-size: 44px
+          eyebrow:
+          - justify-self: start
+          - font-size: 13px
+          - font-weight: '600'
+          - letter-spacing: .2px
+          - color: var(--secondary-text-color)
+          title:
+          - justify-self: start
+          - text-align: left
+          - font-size: 28px
+          - font-weight: '700'
+          - letter-spacing: -.4px
+          - line-height: '1.15'
+          - color: var(--primary-text-color)
+          - white-space: normal
+          meta:
+          - justify-self: start
+          - display: flex
+          - flex-wrap: wrap
+          - align-items: center
+          - gap: 8px
+          - margin-top: 4px
+      extra_styles: "\n      .badge { font-size: 11px; font-weight: 700; letter-spacing: .3px; padding: 3px 8px; border-radius: 6px;\n               color: #000; background: rgba(255,255,255,.92); }\n      .badge.quiet { color: var(--primary-text-color); background: transparent; border: 1px solid rgba(255,255,255,.5); }\n      .sub { font-size: 14px; color: var(--secondary-text-color); }\n    "
+      grid_options:
+        columns: full
+    - type: custom:button-card
+      name: Power
+      icon: mdi:power
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: media_player.toggle
+        target:
+          entity_id: media_player.xgimi_h20_google_tv
+      size: 26px
+      styles:
+        card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - backdrop-filter: none
+        - -webkit-backdrop-filter: none
+        - --ha-card-backdrop-filter: none
+        - --ha-card-background: transparent
+        - padding: 4px 0
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - overflow: visible
+        grid:
+        - grid-template-areas: '"i" "n"'
+        - row-gap: 8px
+        - justify-items: center
+        img_cell:
+        - width: 64px
+        - height: 64px
+        - border-radius: 50%
+        - background: '[[[ return ([''on'',''screensaver''].includes(states[''sensor.xgimi_h20_power_state''].state)) ? ''#30d158'' : ''rgba(255,255,255,.14)''; ]]]'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - backdrop-filter: blur(16px) saturate(1.4)
+        icon:
+        - color: white
+        name:
+        - font-size: 12px
+        - font-weight: '500'
+        - color: var(--primary-text-color)
+      grid_options:
+        columns: 3
+        rows: auto
+    - type: custom:button-card
+      name: Focus
+      icon: mdi:image-filter-center-focus-strong
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: button.press
+        target:
+          entity_id: button.xgimi_h20_autofocus
+      size: 26px
+      styles:
+        card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - backdrop-filter: none
+        - -webkit-backdrop-filter: none
+        - --ha-card-backdrop-filter: none
+        - --ha-card-background: transparent
+        - padding: 4px 0
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - overflow: visible
+        grid:
+        - grid-template-areas: '"i" "n"'
+        - row-gap: 8px
+        - justify-items: center
+        img_cell:
+        - width: 64px
+        - height: 64px
+        - border-radius: 50%
+        - background: rgba(255,255,255,.14)
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - backdrop-filter: blur(16px) saturate(1.4)
+        icon:
+        - color: white
+        name:
+        - font-size: 12px
+        - font-weight: '500'
+        - color: var(--primary-text-color)
+      grid_options:
+        columns: 3
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+    - type: custom:button-card
+      name: Picture menu
+      icon: mdi:tune-variant
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: button.press
+        target:
+          entity_id: button.xgimi_h20_open_picture_menu
+      size: 26px
+      styles:
+        card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - backdrop-filter: none
+        - -webkit-backdrop-filter: none
+        - --ha-card-backdrop-filter: none
+        - --ha-card-background: transparent
+        - padding: 4px 0
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - overflow: visible
+        grid:
+        - grid-template-areas: '"i" "n"'
+        - row-gap: 8px
+        - justify-items: center
+        img_cell:
+        - width: 64px
+        - height: 64px
+        - border-radius: 50%
+        - background: rgba(255,255,255,.14)
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - backdrop-filter: blur(16px) saturate(1.4)
+        icon:
+        - color: white
+        name:
+        - font-size: 12px
+        - font-weight: '500'
+        - color: var(--primary-text-color)
+      grid_options:
+        columns: 3
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+    - type: custom:button-card
+      name: Read
+      icon: mdi:arrow-down-circle-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: button.press
+        target:
+          entity_id: button.xgimi_h20_read_picture_settings
+      size: 26px
+      styles:
+        card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - backdrop-filter: none
+        - -webkit-backdrop-filter: none
+        - --ha-card-backdrop-filter: none
+        - --ha-card-background: transparent
+        - padding: 4px 0
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - overflow: visible
+        grid:
+        - grid-template-areas: '"i" "n"'
+        - row-gap: 8px
+        - justify-items: center
+        img_cell:
+        - width: 64px
+        - height: 64px
+        - border-radius: 50%
+        - background: rgba(255,255,255,.14)
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - backdrop-filter: blur(16px) saturate(1.4)
+        icon:
+        - color: white
+        name:
+        - font-size: 12px
+        - font-weight: '500'
+        - color: var(--primary-text-color)
+      grid_options:
+        columns: 3
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+    - type: heading
+      heading: Picture mode
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[0]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[0]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[0]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[0] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[0] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[0] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 0 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[1]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[1]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[1]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[1] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[1] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[1] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 1 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[2]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[2]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[2]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[2] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[2] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[2] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 2 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[3]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[3]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[3]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[3] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[3] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[3] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 3 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[4]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[4]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[4]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[4] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[4] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[4] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 4 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[5]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[5]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[5]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[5] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[5] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[5] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 5 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[6]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[6]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[6]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[6] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[6] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[6] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 6 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[7]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[7]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[7]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[7] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[7] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[7] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 7 }}'
+    - type: custom:button-card
+      entity: select.xgimi_h20_picture_mode
+      show_state: false
+      triggers_update:
+      - select.xgimi_h20_picture_mode
+      name: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[8]; return o ? (M[o] ? M[o][0] : o) : ''; ]]]
+      icon: |-
+        [[[ const M = {
+          standard:['Standard','mdi:image-outline'], movie:['Movie','mdi:filmstrip'],
+          vivid:['Vivid','mdi:palette'], imaxenhanced:['IMAX Enhanced','mdi:theater'],
+          game:['Game','mdi:gamepad-variant'], sport:['Sport','mdi:soccer-field'],
+          filmmaker:['Filmmaker','mdi:movie-open-star'], user:['ISF Day','mdi:white-balance-sunny'],
+          energy_saving:['ISF Night','mdi:weather-night'],
+          dolbyvisionbright:['Bright','mdi:dolby'], dolbyvisiondark:['Dark','mdi:dolby'],
+          dolbyvisionvivid:['Vivid','mdi:dolby'], dolbyvisioniq:['IQ','mdi:dolby'],
+          dolbyvisiongame:['Game','mdi:dolby'], dolbyvisionfilmmaker:['Filmmaker','mdi:dolby'],
+          dolbyvisioniqfilmmaker:['IQ Filmmaker','mdi:dolby']}; const o = (entity.attributes.options||[])[8]; return M[o] ? M[o][1] : 'mdi:image'; ]]]
+      size: 22px
+      tap_action:
+        action: perform-action
+        perform_action: select.select_option
+        target:
+          entity_id: select.xgimi_h20_picture_mode
+        data:
+          option: '[[[ return (entity.attributes.options||[])[8]; ]]]'
+      styles:
+        card:
+        - padding: 12px 14px
+        - border-radius: 18px
+        - font-family: '''SF Pro'', -apple-system, BlinkMacSystemFont, ''Helvetica Neue'', sans-serif'
+        - border: 0.5px solid rgba(255,255,255,.28)
+        - box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.25)
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[8] ? ''rgba(255,255,255,.92)'' : ''var(--ha-card-background)''; ]]]'
+        grid:
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 34px 1fr
+        - column-gap: 10px
+        - align-items: center
+        img_cell:
+        - width: 34px
+        - height: 34px
+        - border-radius: 50%
+        - background: '[[[ return entity.state === (entity.attributes.options||[])[8] ? ''#0a84ff'' : ''rgba(255,255,255,.14)''; ]]]'
+        icon:
+        - color: white
+        name:
+        - justify-self: start
+        - font-size: 14px
+        - font-weight: '600'
+        - white-space: normal
+        - overflow: visible
+        - text-overflow: clip
+        - text-align: left
+        - line-height: '1.2'
+        - color: '[[[ return entity.state === (entity.attributes.options||[])[8] ? ''#000'' : ''var(--primary-text-color)''; ]]]'
+      grid_options:
+        columns: 6
+        rows: auto
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_power_state
+        state:
+        - 'on'
+        - screensaver
+      - condition: template
+        value_template: '{{ (state_attr(''select.xgimi_h20_picture_mode'',''options'') or []) | count > 8 }}'
+  - type: grid
+    cards:
+    - type: heading
+      heading: Remote
+      icon: mdi:remote-tv
+    - type: custom:firemote-card
+      entity: media_player.xgimi_h20_adb
+      device_family: chromecast
+      device_type: chromecast-4k
+      compatibility_mode: default
+      defaultRemoteStyle_override: CC1
+      app_launch_1: plex
+      visible_name_text: ''
+      name_position: hidden
+      app_launch_2: smart-tube-next
+      app_launch_3: disney-plus
+      app_launch_4: apple-tv
+      app_launch_5: arte
+      app_launch_6: prime-video
+      app_launch_7: ''
+      app_launch_8: function-control-center
+      scale: '85'
+      show_media_controls: true
+      android_tv_remote_entity: remote.xgimi_h20_google_tv
+      grid_options:
+        columns: 12
+        rows: auto
+  - type: grid
+    visibility:
+    - condition: state
+      entity: sensor.xgimi_h20_power_state
+      state:
+      - 'on'
+      - screensaver
+    cards:
+    - type: heading
+      heading: Picture
+      icon: mdi:image
+    - type: tile
+      entity: number.xgimi_h20_light_output
+      name: Light output
+      grid_options:
+        columns: 12
+      visibility:
+      - condition: state
+        entity: number.xgimi_h20_light_output
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: numeric-input
+        style: slider
+    - type: tile
+      entity: number.xgimi_h20_brightness
+      name: Brightness
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: number.xgimi_h20_brightness
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: numeric-input
+        style: slider
+    - type: tile
+      entity: number.xgimi_h20_contrast
+      name: Contrast
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: number.xgimi_h20_contrast
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: numeric-input
+        style: slider
+    - type: tile
+      entity: number.xgimi_h20_saturation
+      name: Saturation
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: number.xgimi_h20_saturation
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: numeric-input
+        style: slider
+    - type: tile
+      entity: number.xgimi_h20_sharpness
+      name: Sharpness
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: number.xgimi_h20_sharpness
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: numeric-input
+        style: slider
+    - type: tile
+      entity: select.xgimi_h20_gamma
+      name: Gamma
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_gamma
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_color_space
+      name: Colour space
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_color_space
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_color_temperature
+      name: Colour temp.
+      grid_options:
+        columns: 12
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_color_temperature
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: heading
+      heading: Light
+      heading_style: subtitle
+    - type: tile
+      entity: switch.xgimi_h20_ambient_adaptive_light_output
+      name: Auto light
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_ambient_adaptive_light_output
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+    - type: tile
+      entity: switch.xgimi_h20_luminance_boost
+      name: Boost
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_luminance_boost
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+    - type: tile
+      entity: switch.xgimi_h20_high_power
+      name: High power
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_high_power
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+    - type: tile
+      entity: switch.xgimi_h20_dynamic_black_level_enhancement
+      name: Black level
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_dynamic_black_level_enhancement
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+  - type: grid
+    visibility:
+    - condition: state
+      entity: sensor.xgimi_h20_power_state
+      state:
+      - 'on'
+      - screensaver
+    cards:
+    - type: heading
+      heading: Enhancements
+      icon: mdi:auto-fix
+    - type: tile
+      entity: switch.xgimi_h20_ai_picture_quality_ai_pq
+      name: AI picture
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_ai_picture_quality_ai_pq
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+    - type: tile
+      entity: switch.xgimi_h20_projector_super_frame
+      name: Super Frame
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: switch.xgimi_h20_projector_super_frame
+        state_not:
+        - unavailable
+        - unknown
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      state_content: state
+    - type: tile
+      entity: select.xgimi_h20_memc
+      name: MEMC
+      grid_options:
+        columns: 12
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_memc
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: heading
+      heading: Fine tuning
+      heading_style: subtitle
+    - type: tile
+      entity: select.xgimi_h20_di_film_mode
+      name: DI film mode
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_di_film_mode
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_noise_reduction_dnr
+      name: DNR
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_noise_reduction_dnr
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_mpeg_noise_reduction
+      name: MPEG-NR
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_mpeg_noise_reduction
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_local_contrast
+      name: Local contrast
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_local_contrast
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_adaptive_luma_control
+      name: Adaptive luma
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_adaptive_luma_control
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_maxvivid
+      name: MaxVivid
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_maxvivid
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_de_contour
+      name: Contours
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_de_contour
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: select.xgimi_h20_low_blue_light
+      name: Blue light
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: select.xgimi_h20_low_blue_light
+        state_not:
+        - unavailable
+        - unknown
+      features:
+      - type: select-options
+      features_position: bottom
+  - type: grid
+    cards:
+    - type: heading
+      heading: Info
+      icon: mdi:information-outline
+    - type: tile
+      entity: sensor.xgimi_h20_power_state
+      name: State
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.xgimi_h20_foreground_app
+      name: Active app
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_foreground_app
+        state_not:
+        - unavailable
+        - unknown
+    - type: tile
+      entity: sensor.xgimi_h20_input_source
+      name: Source
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_input_source
+        state_not:
+        - unavailable
+        - unknown
+    - type: tile
+      entity: sensor.xgimi_h20_hdr_format
+      name: Signal
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_hdr_format
+        state_not:
+        - unavailable
+        - unknown
+    - type: tile
+      entity: sensor.xgimi_h20_operating_hours
+      name: Operating hours
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_operating_hours
+        state_not:
+        - unavailable
+        - unknown
+    - type: tile
+      entity: sensor.xgimi_h20_last_command
+      name: Last command
+      grid_options:
+        columns: 6
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_last_command
+        state_not:
+        - unavailable
+        - unknown
+    - type: tile
+      entity: sensor.xgimi_h20_firmware
+      name: Firmware
+      grid_options:
+        columns: 12
+      visibility:
+      - condition: state
+        entity: sensor.xgimi_h20_firmware
+        state_not:
+        - unavailable
+        - unknown
+    - type: markdown
+      text_only: true
+      content: 'Picture values are stored **per picture mode and signal**. In *Persistent* mode the projector briefly shows its picture menu while changing (3–20 s). Switch modes: *Devices & services → XGIMI H20 → Configure*.'

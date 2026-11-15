@@ -10,6 +10,8 @@ Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`
 
 ![So funktioniert's: Home Assistant ⇄ ADB ⇄ XGIMI H20](docs/images/how-it-works.svg)
 
+> 🎛️ Mit fertigem [Liquid-Glass-Dashboard](#dashboard).
+
 ## Was geht
 
 **Bildeinstellungen (lesen + schreiben)**
@@ -96,6 +98,33 @@ data:
   device_id: <XGIMI H20>
   keys: [HOME]
 ```
+
+## Dashboard
+
+Ein fertiges Dashboard im Apple-/*Liquid-Glass*-Stil: „Jetzt läuft“-Karte mit HDR-Plakette, runde Kontrollzentrum-Knöpfe (Ein/Aus, Autofokus, Bildmenü, Einlesen), Bildmodus-Kacheln, die sich an SDR / Dolby Vision anpassen, eine komplette Fernbedienung und alle Bildeinstellungen gruppiert in *Bild*, *Verbesserungen*, *Feinabstimmung* und *Info*. Im Standby schrumpft es auf Ein/Aus-Knopf und Fernbedienung.
+
+![Dashboard: Jetzt läuft, Steuerknöpfe, Bildmodi und Fernbedienung](docs/images/dashboard-top.jpg)
+
+![Dashboard: Kacheln für Bild, Verbesserungen, Feinabstimmung und Info](docs/images/dashboard-picture.jpg)
+
+*Echte Screenshots mit dem optionalen visionOS-/Liquid-Glass-Theme.*
+
+**So kommt es in dein Home Assistant**
+
+1. Aus HACS (*Frontend*) installieren: [button-card](https://github.com/custom-cards/button-card) und [firemote-card](https://github.com/PRProd/HA-Firemote) (Fernbedienung).
+2. Optional für den Look: das Theme [homeassistant-visionos-theme](https://github.com/Nezz/homeassistant-visionos-theme) („Liquid Glass“) – jedes dunkle Theme geht auch.
+3. Neues Dashboard anlegen, öffnen → ✏️ → ⋮ → *Raw-Konfigurationseditor* und die View unter `views:` einfügen:
+   - Deutsches Home Assistant: [`examples/dashboard-beamer.de.yaml`](examples/dashboard-beamer.de.yaml)
+   - Englisches Home Assistant: [`examples/dashboard-beamer.en.yaml`](examples/dashboard-beamer.en.yaml)
+4. Die drei Entitäten der anderen Integrationen durch deine ersetzen:
+
+| In der YAML | Was es ist |
+|---|---|
+| `media_player.xgimi_h20_google_tv` | Beamer aus der Integration **Android TV Remote** (Ein/Aus-Knopf) |
+| `remote.xgimi_h20_google_tv` | Remote-Entität derselben Integration (firemote-card) |
+| `media_player.xgimi_h20_adb` | Beamer aus der Integration **Android TV** (ADB) (firemote-card) |
+
+Alle `xgimi_h20_*`-Entitäten entsprechen den Standardnamen, die diese Integration für ein Gerät namens „XGIMI H20“ anlegt. Wer das Gerät umbenannt hat, ersetzt das Präfix per Suchen & Ersetzen. Für das Theme `theme: Liquid Glass` in der View ergänzen.
 
 ## Beispiele
 

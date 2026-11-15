@@ -1,73 +1,81 @@
-# XGIMI H20 für Home Assistant
+# XGIMI H20 for Home Assistant
+
+**English** · [Deutsch](README.de.md)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 
-Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`) – ohne Cloud und ohne Zusatz-App auf dem Beamer. Gesteuert wird alles über **ADB** im lokalen Netz.
+![XGIMI H20 for Home Assistant](docs/images/banner.svg)
 
-*English summary below.*
+Full local integration for the **XGIMI H20** (Google TV, model `XR13A`) – no cloud and no extra app on the projector. Everything is controlled over **ADB** on your local network.
 
-## Was geht
+![How it works: Home Assistant ⇄ ADB ⇄ XGIMI H20](docs/images/how-it-works.svg)
 
-**Bildeinstellungen (lesen + schreiben)**
+## What you get
 
-| Entität | Menü-Key (für `set_settings`) | Werte |
+**Picture settings (read + write)**
+
+| Entity | Menu key (for `set_settings`) | Values |
 |---|---|---|
-| Bildmodus | `picture_mode` | Standard, Movie, Vivid, ImaxEnhanced (HDR), Game, Sport, FilmMaker, User (ISF-Tag), Energy Saving (ISF-Nacht); bei Dolby Vision: DolbyVisionBright, DolbyVisionDark, DolbyVisionVivid, DolbyVisionIQ, DolbyVisionGame, DolbyVisionFilmmaker, DolbyVisionIQFilmmaker |
-| Projektor-Lichtleistung | `picture_projector_brightness` | 1–10 |
-| Helligkeit / Kontrast / Sättigung | `picture_brightness` / `picture_contrast` / `picture_saturation` | 0–100 |
-| Schärfe | `picture_sharpness` | 0–20 |
-| Farbtemperatur | `picture_projector_color_temperature` | Standard, D65, Movie, Color temperature 2, Fresh (je nach Bildmodus) |
+| Picture mode | `picture_mode` | Standard, Movie, Vivid, ImaxEnhanced (HDR), Game, Sport, FilmMaker, User (ISF day), Energy Saving (ISF night); with Dolby Vision: DolbyVisionBright, DolbyVisionDark, DolbyVisionVivid, DolbyVisionIQ, DolbyVisionGame, DolbyVisionFilmmaker, DolbyVisionIQFilmmaker |
+| Projector light output | `picture_projector_brightness` | 1–10 |
+| Brightness / contrast / saturation | `picture_brightness` / `picture_contrast` / `picture_saturation` | 0–100 |
+| Sharpness | `picture_sharpness` | 0–20 |
+| Colour temperature | `picture_projector_color_temperature` | Standard, D65, Movie, Color temperature 2, Fresh (depends on picture mode) |
 | Gamma | `picture_gamma` | Dark, Middle, Bright |
-| Farbraum | `picture_projector_color_space` | 4 = Nativ, 3 = Rec.709, 2 = DCI-P3, 1 = BT.2020, 7 = Adobe RGB |
+| Colour space | `picture_projector_color_space` | 4 = Native, 3 = Rec.709, 2 = DCI-P3, 1 = BT.2020, 7 = Adobe RGB |
 | MEMC | `tv_picture_advance_video_mjc_effect` | Off, Real_Cinema, Low, Middle, High |
-| AI-Bildoptimierung (AI PQ) | `tv_picture_video_aipq` | true / false |
-| Rauschunterdrückung (DNR) | `tv_picture_advance_video_dnr` | Off, Low, Middle, High |
-| MPEG-Rauschunterdrückung | `tv_picture_advance_video_mpeg_nr` | Off, Low, Middle, High |
-| DI-Filmmodus | `tv_picture_video_di_film_mode` | Off, On (= Automatisch) |
-| MaxLebhaft | `tv_picture_video_maxvivid` | Off, Low, Middle, High |
-| Adaptive Luma-Steuerung | `tv_picture_video_adaptive_luma_control` | Off, Low, Middle, High |
-| Lokaler Kontrast | `tv_picture_video_local_contrast_control` | Off, Low, Middle, High |
-| Konturenglättung | `tv_picture_video_de_counter` | Off, Low, Middle, High |
-| Niedriger Blaulichtanteil | `tv_picture_video_low_bluelight` | Off, Low, Middle, High |
-| HDMI-RGB-Spektrum, PC-Modus | `tv_picture_video_hdmi_rgb_range`, `tv_picture_video_pc_mode` | Auto/Full/Limited, Off/On/Auto |
-| Dyn. Schwarzwertverbesserung, Super Frame, Hohe Leistung, Leuchtdichte-Boost, Umgebungsangepasste Lichtleistung, Optischer Farbfilter, Filmmaker-Auto | Schalter | true / false |
+| AI picture optimisation (AI PQ) | `tv_picture_video_aipq` | true / false |
+| Noise reduction (DNR) | `tv_picture_advance_video_dnr` | Off, Low, Middle, High |
+| MPEG noise reduction | `tv_picture_advance_video_mpeg_nr` | Off, Low, Middle, High |
+| DI film mode | `tv_picture_video_di_film_mode` | Off, On (= automatic) |
+| MaxVivid | `tv_picture_video_maxvivid` | Off, Low, Middle, High |
+| Adaptive luma control | `tv_picture_video_adaptive_luma_control` | Off, Low, Middle, High |
+| Local contrast | `tv_picture_video_local_contrast_control` | Off, Low, Middle, High |
+| Contour smoothing | `tv_picture_video_de_counter` | Off, Low, Middle, High |
+| Low blue light | `tv_picture_video_low_bluelight` | Off, Low, Middle, High |
+| HDMI RGB range, PC mode | `tv_picture_video_hdmi_rgb_range`, `tv_picture_video_pc_mode` | Auto/Full/Limited, Off/On/Auto |
+| Dynamic black level, Super Frame, High performance, Luminance boost, Ambient-adaptive light output, Optical colour filter, Filmmaker auto | switches | true / false |
 
-Der H20 speichert Bildwerte **pro Profil** – also pro Quelle (Google TV, HDMI 1 …), Signaltyp (SDR, HDR10, HLG, Dolby Vision …) und Bildmodus. Die Integration merkt sich die Werte genauso: Startet ein Dolby-Vision-Film, zeigen die Entitäten die Werte des Dolby-Vision-Profils, danach wieder die des vorherigen. Einstellungen, die der Beamer im aktuellen Profil sperrt (z. B. *Hohe Leistung* bei Dolby Vision), erscheinen als „nicht verfügbar“.
+The H20 stores picture values **per profile** – per source (Google TV, HDMI 1 …), signal type (SDR, HDR10, HLG, Dolby Vision …) and picture mode. The integration remembers values the same way: when a Dolby Vision film starts, the entities show the values of the Dolby Vision profile, afterwards those of the previous one again. Settings the projector locks in the current profile (e.g. *High performance* with Dolby Vision) show as "unavailable".
 
-**Status**: Betriebszustand (an / Bildschirmschoner / Standby / offline), Eingangsquelle, HDR-Format (SDR, HDR10, HLG, Dolby Vision …), aktive App mit ihrem echten Namen (z. B. „SmartTube", „Netflix"; bei HDMI der Eingang – der Name wird einmalig aus der App gelesen und gespeichert), Betriebsstunden, Firmware, letzter Befehl, native Live-Bildwerte (Diagnose).
+**Status**: power state (on / screensaver / standby / offline), input source, HDR format (SDR, HDR10, HLG, Dolby Vision …), active app with its real name (e.g. "SmartTube", "Netflix"; for HDMI the input – the name is read once from the app and stored), operating hours, firmware, last command, native live picture values (diagnostic).
 
-**Aktionen**: Autofokus, Bildmenü öffnen, Bildeinstellungen einlesen, beliebige Tasten senden.
+**Actions**: autofocus, open the picture menu, read picture settings, send any key.
 
-## Wie es funktioniert – und die zwei Schreibmodi
+<img src="docs/images/entities.svg" alt="Example device page with picture mode, light output, MEMC, HDR format and active app" width="460">
 
-Die Bild-Datenbank des MediaTek-Chips ist für ADB gesperrt (nur System-Apps dürfen schreiben). Deshalb gibt es drei Wege, die die Integration automatisch wählt:
+*Illustration – roughly what the device page looks like in Home Assistant.*
 
-1. **XGIMI-Systemeinstellungen** (Lichtleistung, Farbraum, Farbtemperatur): werden direkt gesetzt – **unsichtbar und dauerhaft**, der XGIMI-Dienst übernimmt sie sofort.
-2. **Dauerhaft (über das Bildmenü)** – Standard: Die Integration bedient das offizielle Bildmenü des Beamers per Fernbedienungs-Tasten. Das Seitenpanel ist dabei **3–20 Sekunden sichtbar**. Jeder Schritt wird über das Systemlog verifiziert, der Wert ist danach genau so gespeichert, als hättest du ihn per Fernbedienung geändert. Funktioniert in allen Sprachen der Firmware.
-3. **Live (unsichtbar)**: Werte werden direkt in die Bildpipeline geschrieben – **sofort und unsichtbar**, aber **nicht dauerhaft** (weg beim App-/Quellenwechsel, das Beamer-Menü zeigt weiter den alten Wert). Pro-Stream-Werte (Helligkeit, Kontrast, Schärfe, AI PQ, lokaler Kontrast) wirken live nur während einer laufenden Wiedergabe. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.
+## How it works – and the two write modes
 
-Den Modus stellst du jederzeit unter **Einstellungen → Geräte & Dienste → XGIMI H20 → Konfigurieren** um. Pro Aufruf lässt er sich im Dienst `xgimi_h20.set_settings` mit `mode: live` oder `mode: menu` überschreiben.
+The MediaTek chip's picture database is locked for ADB (only system apps may write). That is why there are three paths, chosen automatically:
 
-**Aktuelle Werte – ohne Menü**: Die Integration liest fast alles still mit:
-- **Während ein SDR-Video läuft** (HDMI-Eingang oder App mit aktiver Wiedergabe) übernimmt sie alle 30 s die Werte direkt aus der Bildpipeline: Helligkeit, Kontrast, Sättigung, Schärfe, Gamma, Rauschunterdrückung, MPEG-NR, AI PQ, DI-Filmmodus, Adaptive Luma, lokaler Kontrast, MaxLebhaft, Konturenglättung, Blaulicht, HDMI-RGB, PC-Modus. Bei **HDR10** meldet die Pipeline einen Teil der Werte (Kontrast, Rauschunterdrückung, Konturen) aus einem anderen Stream, bei **Dolby Vision** gar keine aktuellen Werte – in diesen Profilen gelten deshalb die per Menü oder Logstream erfassten Werte (einmal „Bildeinstellungen einlesen" pro Profil genügt, HA merkt sie sich).
-- **Bildmodus** (Standard, Film, Lebhaft, Spiel, Sport) aus dem XGIMI-Displaydienst; Dolby-Vision-, Filmmaker- und ISF-Modi aus dem Logstream.
-- **Lichtleistung, Farbraum, Farbtemperatur, Super Frame, Hohe Leistung** aus den XGIMI-Systemeinstellungen.
-- **Jede Änderung im Bildmenü** – auch per Fernbedienung – kommt über einen dauerhaften Logcat-Stream in Echtzeit an.
+1. **XGIMI system settings** (light output, colour space, colour temperature): set directly – **invisible and persistent**, the XGIMI service applies them immediately.
+2. **Persistent (via the picture menu)** – default: the integration operates the projector's official picture menu with remote-control keys. The side panel is **visible for 3–20 seconds**. Every step is verified via the system log; afterwards the value is stored exactly as if you had changed it with the remote. Works in every firmware language.
+3. **Live (invisible)**: values are written directly into the picture pipeline – **instant and invisible**, but **not persistent** (lost on app/source change, the projector menu keeps showing the old value). Per-stream values (brightness, contrast, sharpness, AI PQ, local contrast) only take effect live while something is playing. Picture mode and values without a native key always go through the menu.
 
-Nur MEMC-Stufe, dynamischer Schwarzwert, Leuchtdichte-Boost, Auto-Lichtleistung und Filmmaker-Automatik stehen nirgends außer im Menü. Für die gibt es den Button **„Bildeinstellungen einlesen"** bzw. die Option **„Neue Bildprofile automatisch einlesen"**, die das Menü nur bei einem noch völlig unbekannten Profil einmal liest. Der letzte Stand wird über Neustarts gespeichert.
+Switch the mode at any time under **Settings → Devices & services → XGIMI H20 → Configure**. Per call it can be overridden in `xgimi_h20.set_settings` with `mode: live` or `mode: menu`.
+
+**Current values – without the menu**: the integration silently reads almost everything:
+- **While an SDR video is playing** (HDMI input or an app with active playback) it takes all values from the picture pipeline every 30 s: brightness, contrast, saturation, sharpness, gamma, noise reduction, MPEG NR, AI PQ, DI film mode, adaptive luma, local contrast, MaxVivid, contour smoothing, blue light, HDMI RGB, PC mode. With **HDR10** the pipeline reports some values (contrast, noise reduction, contours) from a different stream, with **Dolby Vision** no current values at all – in these profiles the values captured via the menu or the log stream apply (pressing "Read picture settings" once per profile is enough, HA remembers them).
+- **Picture mode** (Standard, Movie, Vivid, Game, Sport) from the XGIMI display service; Dolby Vision, Filmmaker and ISF modes from the log stream.
+- **Light output, colour space, colour temperature, Super Frame, High performance** from the XGIMI system settings.
+- **Every change in the picture menu** – also via the remote – arrives in real time through a persistent logcat stream.
+
+Only the MEMC level, dynamic black level, luminance boost, auto light output and Filmmaker auto exist nowhere but in the menu. For those there is the **"Read picture settings"** button or the option **"Automatically read new picture profiles"**, which reads the menu only once for a completely unknown profile. The last state is kept across restarts.
 
 ## Installation
 
-1. HACS → ⋮ → *Benutzerdefinierte Repositories* → `https://github.com/dr-apple/ha-xgimi-h20`, Kategorie *Integration* → installieren → Home Assistant neu starten.
-2. Am Beamer ADB aktivieren: *Einstellungen → System → Info → 7× auf „Android TV OS-Build"*, dann *Entwickleroptionen → USB-Debugging / Netzwerk-Debugging*.
-3. *Einstellungen → Geräte & Dienste → Integration hinzufügen → XGIMI H20* (wird auch automatisch per Zeroconf gefunden), IP-Adresse eintragen.
-   - Ist die **Android-TV-Integration** von Home Assistant schon mit dem Beamer verbunden, wird deren Schlüssel (`.storage/androidtv_adbkey`) benutzt – es ist **keine neue Freigabe** nötig.
-   - Sonst erzeugt die Integration einen eigenen Schlüssel; die Freigabe-Abfrage am Beamer mit „Immer zulassen" bestätigen.
+1. HACS → ⋮ → *Custom repositories* → `https://github.com/dr-apple/ha-xgimi-h20`, category *Integration* → install → restart Home Assistant.
+2. Enable ADB on the projector: *Settings → System → About → tap "Android TV OS build" 7×*, then *Developer options → USB debugging / Network debugging*.
+3. *Settings → Devices & services → Add integration → XGIMI H20* (also discovered automatically via Zeroconf), enter the IP address.
+   - If Home Assistant's **Android TV integration** is already connected to the projector, its key (`.storage/androidtv_adbkey`) is reused – **no new authorisation** is needed.
+   - Otherwise the integration creates its own key; confirm the prompt on the projector with "Always allow".
 
-## Dienste
+## Services
 
 ```yaml
-# Mehrere Werte auf einmal (ein Menü-Durchgang)
+# Several values at once (one pass through the menu)
 action: xgimi_h20.set_settings
 data:
   device_id: <XGIMI H20>
@@ -77,30 +85,66 @@ data:
     picture_brightness: 52
   mode: menu   # optional: menu | live
 
-# Alle Werte aus dem Menü einlesen (liefert sie auch als Antwort zurück)
+# Read all values from the menu (also returned as the response)
 action: xgimi_h20.read_picture_menu
 data:
   device_id: <XGIMI H20>
 
-# Tasten senden
+# Send keys
 action: xgimi_h20.send_keys
 data:
   device_id: <XGIMI H20>
   keys: [HOME]
 ```
 
-## Hinweise
+## Examples
 
-- Getestet mit Firmware `UKN6.260116.134` (Android 14).
-- Ein- und Ausschalten, Lautstärke und App-Start erledigen weiterhin die Android-TV- bzw. Google-Cast-Integration; diese Integration ergänzt alles rund ums Bild.
-- Im Standby ist der Beamer per ADB nicht erreichbar – die Bild-Entitäten sind dann „nicht verfügbar", der Betriebszustand zeigt „offline".
+**Movie night script** – picture mode Movie, MEMC off, full light output (one menu pass):
 
----
+```yaml
+script:
+  projector_movie_night:
+    alias: Projector movie night
+    sequence:
+      - action: xgimi_h20.set_settings
+        data:
+          device_id: <XGIMI H20>
+          settings:
+            picture_mode: Movie
+            tv_picture_advance_video_mjc_effect: "Off"
+            picture_projector_brightness: 10
+```
 
-## English summary
+**Switch to "Game" automatically when the console on HDMI 1 is active:**
 
-Local Home Assistant integration for the **XGIMI H20** (Google TV) using ADB – no cloud, no companion app. Reads and controls picture mode, light output, brightness/contrast/saturation/sharpness, gamma, colour space/temperature, MEMC, AI PQ, noise reduction, local contrast and more, plus status sensors and autofocus.
+```yaml
+triggers:
+  - trigger: state
+    entity_id: sensor.xgimi_h20_input_source
+    to: HDMI 1   # check the exact state under Developer tools → States
+actions:
+  - action: select.select_option
+    target:
+      entity_id: select.xgimi_h20_picture_mode
+    data:
+      option: Game
+```
 
-MediaTek protects the picture database, so persistent changes are made by driving the projector's own picture menu (panel briefly visible, every step verified via logcat). Alternatively a **live** mode writes directly into the PQ pipeline (invisible, instant, not persistent). Switch between them in the integration options. Changes made with the remote are picked up in real time via a logcat stream. Reuses the Android TV integration's ADB key when available.
+Entity IDs depend on the device name and HA language – look them up under *Settings → Devices & services → XGIMI H20*.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Connection fails | Network debugging enabled on the projector? Prompt on the projector confirmed with "Always allow"? |
+| Everything "unavailable" | The projector is in standby – ADB is off then. Values return after power-on. |
+| Picture menu flashes briefly | Normal in "Persistent (via picture menu)" mode. Use live mode for invisible changes. |
+| Values of a profile are missing | Press "Read picture settings" once – HA remembers the profile. |
+
+## Notes
+
+- Tested with firmware `UKN6.260116.134` (Android 14).
+- Power, volume and app launch are still handled by the Android TV or Google Cast integration; this integration adds everything around the picture.
+- In standby the projector cannot be reached via ADB – picture entities are "unavailable" then and the power state shows "offline".
 
 License: MIT. Not affiliated with XGIMI.

@@ -164,7 +164,12 @@ def genre_targets(genre: str | None, darkness: str | None, kind: str | None) -> 
     target.update(ENHANCE_GENRE.get(genre, {}))
     if darkness == "dark" or genre in ("horror", "thriller"):
         target.update(ENHANCE_DARK)
-    target[COLOR_TEMP] = COLOR_TEMP_MOVIE if kind == "movie" else COLOR_TEMP_OTHER
+    # Only touch the colour temperature when the kind is known: an unknown
+    # kind (the profiler reports none) must not undo D65 of a movie.
+    if kind == "movie":
+        target[COLOR_TEMP] = COLOR_TEMP_MOVIE
+    elif kind == "series":
+        target[COLOR_TEMP] = COLOR_TEMP_OTHER
     return target
 
 

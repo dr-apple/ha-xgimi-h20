@@ -130,7 +130,7 @@ You then get the switch **AI picture optimisation** (starts off) and the sensors
 | Sport | 10 · 50 · 50 · 54 | – |
 
 - **Dark titles:** brightness +2, local contrast Middle, adaptive luma Low. **Bright titles:** brightness −1.
-- **Movies:** colour temperature D65; **series and unknown:** colour temperature *Movie*.
+- **Movies:** colour temperature D65; **series:** colour temperature *Movie*. If the kind is unknown, the colour temperature is left as it is.
 - **Otherwise always:** sharpness 3, noise reduction Middle, local contrast Off, adaptive luma Off, de-contour Middle, MaxVivid Off – so nothing "sticks" after a cartoon.
 - **Learning:** if you change light output, brightness, contrast, saturation, picture mode or MEMC while a title has been playing for at least 2 minutes and leave it for 90 s, these values apply to that title and HDR format from then on. Picture mode and MEMC go through the picture menu (panel briefly visible) and are only set from learned values.
 - Settings the projector locks in the current profile (e.g. MaxVivid with Dolby Vision) are skipped.

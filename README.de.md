@@ -130,7 +130,7 @@ Danach gibt es den Schalter **KI-Bildoptimierung** (startet aus) und die Sensore
 | Sport | 10 · 50 · 50 · 54 | – |
 
 - **Dunkle Titel:** Helligkeit +2, Lokaler Kontrast Mittel, Adaptive Luma Niedrig. **Helle Titel:** Helligkeit −1.
-- **Filme:** Farbtemperatur D65, **Serien und Unbekanntes:** Farbtemperatur *Film*.
+- **Filme:** Farbtemperatur D65, **Serien:** Farbtemperatur *Film*. Ist die Art unbekannt, bleibt die Farbtemperatur, wie sie ist.
 - **Sonst immer:** Schärfe 3, Rauschunterdrückung Mittel, Lokaler Kontrast Aus, Adaptive Luma Aus, Konturenglättung Mittel, MaxLebhaft Aus – so bleibt nach einem Zeichentrick nichts „hängen“.
 - **Lernen:** Änderst du Lichtleistung, Helligkeit, Kontrast, Sättigung, Bildmodus oder MEMC, während ein Titel seit mindestens 2 Minuten läuft, und lässt sie 90 s so, gelten diese Werte künftig für diesen Titel und dieses HDR-Format. Bildmodus und MEMC laufen über das Bildmenü (Panel kurz sichtbar) und werden nur aus gelernten Werten gesetzt.
 - Was der Beamer im aktuellen Profil sperrt (z. B. MaxLebhaft bei Dolby Vision), wird übersprungen.

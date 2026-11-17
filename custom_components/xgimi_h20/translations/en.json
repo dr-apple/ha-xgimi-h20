@@ -35,7 +35,7 @@
         "data_description": {
           "write_mode": "Persistent: the projector's picture menu is driven briefly (panel visible 3–20 s), the value is stored like a manual change. Live: written directly into the picture pipeline, invisible and instant, but lost on app/source change and not shown in the projector menu. Picture mode and settings without a native key always use the menu.",
           "snapshot_on_start": "When a source / HDR type / picture mode combination is seen for the first time (e.g. the first Dolby Vision title), the picture menu is read once (panel visible ~30 s) so every value is known for that profile.",
-          "ai_profiler": "The “Active profile” sensor of the Entertainment Profiler integration (v0.3.0 or newer). It tells which app and which series or movie is playing. Leave empty to turn the AI picture optimisation off.",
+          "ai_profiler": "The “Active profile” sensor of the Entertainment Profiler integration. It tells which app and which series or movie is playing. Leave empty to turn the AI picture optimisation off.",
           "ai_task": "An AI task entity (ai_task) that sorts every title once into a genre and a brightness. Without it every title counts as “drama”.",
           "ai_notify": "Optional: notify entity (e.g. Notifications for Android TV) that shows the changed values after every adjustment."
         }

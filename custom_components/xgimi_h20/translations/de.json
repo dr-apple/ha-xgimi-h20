@@ -35,7 +35,7 @@
         "data_description": {
           "write_mode": "Dauerhaft: Das Bildmenü des Beamers wird kurz automatisch bedient (Panel 3–20 s sichtbar), der Wert wird wie eine manuelle Änderung gespeichert. Live: direkt in die Bildpipeline geschrieben – unsichtbar und sofort, geht aber beim App-/Quellwechsel verloren und wird im Beamer-Menü nicht angezeigt. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.",
           "snapshot_on_start": "Taucht eine Kombination aus Quelle, HDR-Typ und Bildmodus zum ersten Mal auf (z. B. der erste Dolby-Vision-Film), wird das Bildmenü einmal eingelesen (Panel ca. 30 s sichtbar). Danach kennt HA alle Werte dieses Profils.",
-          "ai_profiler": "Der Sensor „Aktives Profil“ der Integration Entertainment Profiler (ab v0.3.0). Er sagt, welche App und welche Serie bzw. welcher Film läuft. Leer lassen = KI-Bildoptimierung aus.",
+          "ai_profiler": "Der Sensor „Aktives Profil“ der Integration Entertainment Profiler. Er sagt, welche App und welche Serie bzw. welcher Film läuft. Leer lassen = KI-Bildoptimierung aus.",
           "ai_task": "Eine KI-Aufgaben-Entität (ai_task), die jeden Titel einmal einem Genre und einer Helligkeit zuordnet. Ohne KI gilt für jeden Titel „Drama“.",
           "ai_notify": "Optional: Benachrichtigungs-Entität (z. B. Notifications for Android TV), die nach jeder Anpassung die geänderten Werte anzeigt."
         }

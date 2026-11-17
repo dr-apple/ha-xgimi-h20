@@ -2,8 +2,9 @@
 
 The title comes from the Entertainment Profiler integration
 (https://github.com/dr-apple/ha-entertainment-profiler): its active-profile
-sensor names the app and series / movie (``Plex|The Expanse``) and, since
-v0.3.0, whether it is a series or a movie. An ``ai_task`` entity classifies
+sensor names the app and series / movie (``Plex|The Expanse``) and, when the
+profiler provides the ``media_kind`` / ``media_player`` attributes, whether it
+is a series or a movie (without them every title counts as a series). An ``ai_task`` entity classifies
 each title once (genre and how dark it is); the result is kept per title.
 
 For every title the projector gets genre defaults (light output, brightness,

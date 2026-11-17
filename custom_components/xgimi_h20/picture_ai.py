@@ -120,9 +120,9 @@ TEXT = {
         },
         "values": {
             "Off": "Aus", "Low": "Niedrig", "Middle": "Mittel", "High": "Hoch", "On": "An",
-            "16": "D65", "24": "Film", "0": "Standard", "17": "Frisch", "-1": "Warm",
             "Movie": "Film", "Vivid": "Lebhaft", "Game": "Spiel", "Real_Cinema": "Echtes Kino",
         },
+        "temps": {"16": "D65", "24": "Film", "0": "Standard", "17": "Frisch", "-1": "Warm"},
         "genres": {
             "drama": "Drama", "thriller": "Thriller", "action": "Action", "comedy": "Komödie",
             "animation": "Animation", "documentary": "Doku", "horror": "Horror", "sport": "Sport",
@@ -139,9 +139,9 @@ TEXT = {
             COLOR_TEMP: "Colour temperature",
         },
         "values": {
-            "16": "D65", "24": "Movie", "0": "Standard", "17": "Fresh", "-1": "Warm",
             "Real_Cinema": "Real cinema",
         },
+        "temps": {"16": "D65", "24": "Movie", "0": "Standard", "17": "Fresh", "-1": "Warm"},
         "genres": {
             "drama": "Drama", "thriller": "Thriller", "action": "Action", "comedy": "Comedy",
             "animation": "Animation", "documentary": "Documentary", "horror": "Horror",
@@ -471,9 +471,14 @@ class PictureAI:
         return result
 
     def _label(self, key: str, value: Any) -> str:
-        if value is None or value == -1:
+        if value is None:
             return "–"
-        return TEXT[self.language]["values"].get(str(value), str(value))
+        text = TEXT[self.language]
+        if key == COLOR_TEMP:
+            return text["temps"].get(str(value), str(value))
+        if value == -1:
+            return "–"
+        return text["values"].get(str(value), str(value))
 
     def _rows(self, changes: dict[str, Any], current: dict[str, Any]) -> list[dict[str, Any]]:
         names = TEXT[self.language]["names"]

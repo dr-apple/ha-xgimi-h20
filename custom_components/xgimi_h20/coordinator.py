@@ -469,7 +469,10 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
                 if live:
                     await self.client.async_set_pq_live(live)
                 if live_perstream:
+                    # Apps on the projector need the per-stream call (stream 0);
+                    # HDMI inputs only take the global call. Send both.
                     await self.client.async_set_pq_live(live_perstream, perstream=True)
+                    await self.client.async_set_pq_live(live_perstream)
                 for key, raw in changes.items():
                     setting = SETTINGS_BY_KEY[key]
                     if setting.native and (setting.native in live or setting.native in live_perstream):

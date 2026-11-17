@@ -74,6 +74,7 @@ class XgimiCoordinator(DataUpdateCoordinator[XgimiData]):
         )
         self.client = client
         self.robot: MenuRobot | None = None
+        self.picture_ai = None  # PictureAI, set up when the options name a profiler
         self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}")
         # Picture values are stored per firmware profile:
         #   modes[signal] -> picture mode, profiles[signal|mode] -> {key: value}

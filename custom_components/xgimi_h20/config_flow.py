@@ -12,6 +12,8 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -25,6 +27,9 @@ from .api import XgimiError, XgimiH20
 from .const import (
     ANDROIDTV_ADBKEY,
     CONF_ADBKEY,
+    CONF_AI_NOTIFY,
+    CONF_AI_PROFILER,
+    CONF_AI_TASK,
     CONF_SCAN_INTERVAL,
     CONF_SNAPSHOT_ON_START,
     CONF_WRITE_MODE,
@@ -33,6 +38,7 @@ from .const import (
     DEFAULT_WRITE_MODE,
     DOMAIN,
     OWN_ADBKEY,
+    PROFILER_DOMAIN,
     WRITE_MODES,
 )
 
@@ -100,12 +106,16 @@ class XgimiH20ConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class XgimiH20OptionsFlow(OptionsFlow):
-    """Options: write mode, polling interval, menu snapshot."""
+    """Options: write mode, polling interval, menu snapshot, AI picture."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
         if user_input is not None:
             user_input[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
-            return self.async_create_entry(data=user_input)
+            if user_input.get(CONF_AI_PROFILER) and PROFILER_DOMAIN not in self.hass.config.components:
+                errors[CONF_AI_PROFILER] = "profiler_missing"
+            else:
+                return self.async_create_entry(data=user_input)
         options = self.config_entry.options
         schema = vol.Schema(
             {
@@ -127,6 +137,15 @@ class XgimiH20OptionsFlow(OptionsFlow):
                 vol.Required(
                     CONF_SNAPSHOT_ON_START, default=options.get(CONF_SNAPSHOT_ON_START, False)
                 ): BooleanSelector(),
+                vol.Optional(
+                    CONF_AI_PROFILER, description={"suggested_value": options.get(CONF_AI_PROFILER)}
+                ): EntitySelector(EntitySelectorConfig(domain="sensor", integration=PROFILER_DOMAIN)),
+                vol.Optional(
+                    CONF_AI_TASK, description={"suggested_value": options.get(CONF_AI_TASK)}
+                ): EntitySelector(EntitySelectorConfig(domain="ai_task")),
+                vol.Optional(
+                    CONF_AI_NOTIFY, description={"suggested_value": options.get(CONF_AI_NOTIFY)}
+                ): EntitySelector(EntitySelectorConfig(domain="notify")),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+        return self.async_show_form(step_id="init", data_schema=schema, errors=errors)

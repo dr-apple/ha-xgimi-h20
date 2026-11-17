@@ -13,17 +13,26 @@ from homeassistant.helpers import device_registry as dr
 
 from .api import XgimiH20
 from .const import (
+    ATTR_DRY_RUN,
+    ATTR_KEY,
     ATTR_KEYS,
+    ATTR_REPLACE,
+    ATTR_TITLES,
+    CONF_AI_PROFILER,
     ATTR_MODE,
     ATTR_SETTINGS,
     CONF_ADBKEY,
     DOMAIN,
+    SERVICE_PICTURE_AI_APPLY,
+    SERVICE_PICTURE_AI_FORGET,
+    SERVICE_PICTURE_AI_IMPORT,
     SERVICE_READ_PICTURE_MENU,
     SERVICE_SEND_KEYS,
     SERVICE_SET_SETTINGS,
     WRITE_MODES,
 )
 from .coordinator import XgimiCoordinator
+from .picture_ai import PictureAI
 
 PLATFORMS = [Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
@@ -41,6 +50,17 @@ SET_SETTINGS_SCHEMA = vol.Schema(
     }
 )
 DEVICE_SCHEMA = vol.Schema({vol.Required(ATTR_DEVICE_ID): cv.string})
+AI_APPLY_SCHEMA = vol.Schema(
+    {vol.Required(ATTR_DEVICE_ID): cv.string, vol.Optional(ATTR_DRY_RUN, default=False): cv.boolean}
+)
+AI_IMPORT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_DEVICE_ID): cv.string,
+        vol.Required(ATTR_TITLES): dict,
+        vol.Optional(ATTR_REPLACE, default=False): cv.boolean,
+    }
+)
+AI_FORGET_SCHEMA = vol.Schema({vol.Required(ATTR_DEVICE_ID): cv.string, vol.Required(ATTR_KEY): cv.string})
 SEND_KEYS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_DEVICE_ID): cv.string,
@@ -89,6 +109,37 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         supports_response=SupportsResponse.OPTIONAL,
     )
     hass.services.async_register(DOMAIN, SERVICE_SEND_KEYS, send_keys, SEND_KEYS_SCHEMA)
+
+    def picture_ai_for(call: ServiceCall) -> PictureAI:
+        ai = coordinator_for(call).picture_ai
+        if ai is None:
+            raise ServiceValidationError(
+                "AI picture optimisation is not set up (options: Entertainment Profiler sensor)"
+            )
+        return ai
+
+    async def picture_ai_apply(call: ServiceCall) -> ServiceResponse:
+        return await picture_ai_for(call).async_apply(dry_run=call.data[ATTR_DRY_RUN])
+
+    async def picture_ai_import(call: ServiceCall) -> ServiceResponse:
+        count = picture_ai_for(call).import_titles(call.data[ATTR_TITLES], call.data[ATTR_REPLACE])
+        return {"imported": count}
+
+    async def picture_ai_forget(call: ServiceCall) -> ServiceResponse:
+        return {"removed": picture_ai_for(call).forget(call.data[ATTR_KEY])}
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_PICTURE_AI_APPLY, picture_ai_apply, AI_APPLY_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_PICTURE_AI_IMPORT, picture_ai_import, AI_IMPORT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_PICTURE_AI_FORGET, picture_ai_forget, AI_FORGET_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
     return True
 
 
@@ -104,6 +155,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: XgimiConfigEntry) -> boo
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
     coordinator.start_log_stream()
+    if entry.options.get(CONF_AI_PROFILER):
+        coordinator.picture_ai = PictureAI(hass, entry, coordinator)
+        await coordinator.picture_ai.async_start()
+        entry.async_on_unload(coordinator.picture_ai.async_stop)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     return True

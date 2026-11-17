@@ -15,10 +15,12 @@ from homeassistant.components.sensor import (
 from homeassistant.const import EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from . import XgimiConfigEntry
 from .coordinator import XgimiData
 from .entity import XgimiEntity
+from .picture_ai import GENRES
 
 HDR_NAMES = {
     "SDR": "SDR",
@@ -146,7 +148,10 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: XgimiConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     coordinator = entry.runtime_data
-    async_add_entities(XgimiSensor(coordinator, description) for description in SENSORS)
+    entities: list[SensorEntity] = [XgimiSensor(coordinator, d) for d in SENSORS]
+    if coordinator.picture_ai is not None:
+        entities += [PictureAIGenreSensor(coordinator), PictureAILastChangeSensor(coordinator)]
+    async_add_entities(entities)
 
 
 class XgimiSensor(XgimiEntity, SensorEntity):
@@ -171,3 +176,79 @@ class XgimiSensor(XgimiEntity, SensorEntity):
         if self.entity_description.attrs is None:
             return None
         return self.entity_description.attrs(self.coordinator.data)
+
+
+class _PictureAIEntity(XgimiEntity, SensorEntity):
+    def __init__(self, coordinator, key: str) -> None:
+        super().__init__(coordinator, key)
+        self.ai = coordinator.picture_ai
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self.ai.add_listener(self.async_write_ha_state))
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.data is not None
+
+
+class PictureAIGenreSensor(_PictureAIEntity):
+    """Genre the AI picture optimisation uses for the current title."""
+
+    _attr_translation_key = "picture_ai_genre"
+    _attr_icon = "mdi:movie-filter"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [*GENRES, "unknown_title", "nothing"]
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "picture_ai_genre")
+
+    @property
+    def native_value(self) -> str:
+        key = self.ai.key
+        if key is None:
+            return "nothing"
+        entry = self.ai.entry_for(key)
+        return entry["genre"] if entry and entry.get("genre") else "unknown_title"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        key = self.ai.key
+        entry = self.ai.entry_for(key) or {}
+        return {
+            "title_key": key,
+            "kind": entry.get("kind"),
+            "darkness": entry.get("darkness"),
+            "description": self.ai.describe(entry) if entry else None,
+            "learned_for": sorted(entry.get("learned", {})),
+            "known_titles": len(self.ai.titles),
+        }
+
+
+class PictureAILastChangeSensor(_PictureAIEntity):
+    """When and what the AI picture optimisation changed last."""
+
+    _attr_translation_key = "picture_ai_last_change"
+    _attr_icon = "mdi:history"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "picture_ai_last_change")
+
+    @property
+    def native_value(self):
+        last = self.ai.last_change
+        return dt_util.parse_datetime(last["time"]) if last else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        last = self.ai.last_change or {}
+        return {
+            "title_key": last.get("key"),
+            "hdr": last.get("hdr"),
+            "genre": last.get("genre"),
+            "darkness": last.get("darkness"),
+            "kind": last.get("kind"),
+            "description": self.ai.describe(last) if last else None,
+            "changes": last.get("changes", []),
+        }

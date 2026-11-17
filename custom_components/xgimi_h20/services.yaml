@@ -37,3 +37,42 @@ send_keys:
       selector:
         text:
           multiple: true
+picture_ai_apply:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+    dry_run:
+      default: false
+      selector:
+        boolean:
+picture_ai_import:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+    titles:
+      required: true
+      example: '{"Plex|The Expanse": {"genre": "scifi", "darkness": "dark", "kind": "series"}}'
+      selector:
+        object:
+    replace:
+      default: false
+      selector:
+        boolean:
+picture_ai_forget:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xgimi_h20
+    key:
+      required: true
+      example: "Plex|The Expanse"
+      selector:
+        text:

@@ -27,13 +27,22 @@
         "data": {
           "write_mode": "Schreibmodus für Bildeinstellungen",
           "scan_interval": "Abfrageintervall",
-          "snapshot_on_start": "Neue Bildprofile automatisch einlesen"
+          "snapshot_on_start": "Neue Bildprofile automatisch einlesen",
+          "ai_profiler": "KI-Bildoptimierung: Entertainment-Profiler-Sensor",
+          "ai_task": "KI-Entität für die Genre-Erkennung",
+          "ai_notify": "Meldung auf dem Beamer an"
         },
         "data_description": {
           "write_mode": "Dauerhaft: Das Bildmenü des Beamers wird kurz automatisch bedient (Panel 3–20 s sichtbar), der Wert wird wie eine manuelle Änderung gespeichert. Live: direkt in die Bildpipeline geschrieben – unsichtbar und sofort, geht aber beim App-/Quellwechsel verloren und wird im Beamer-Menü nicht angezeigt. Bildmodus und Werte ohne nativen Schlüssel laufen immer über das Menü.",
-          "snapshot_on_start": "Taucht eine Kombination aus Quelle, HDR-Typ und Bildmodus zum ersten Mal auf (z. B. der erste Dolby-Vision-Film), wird das Bildmenü einmal eingelesen (Panel ca. 30 s sichtbar). Danach kennt HA alle Werte dieses Profils."
+          "snapshot_on_start": "Taucht eine Kombination aus Quelle, HDR-Typ und Bildmodus zum ersten Mal auf (z. B. der erste Dolby-Vision-Film), wird das Bildmenü einmal eingelesen (Panel ca. 30 s sichtbar). Danach kennt HA alle Werte dieses Profils.",
+          "ai_profiler": "Der Sensor „Aktives Profil“ der Integration Entertainment Profiler (ab v0.3.0). Er sagt, welche App und welche Serie bzw. welcher Film läuft. Leer lassen = KI-Bildoptimierung aus.",
+          "ai_task": "Eine KI-Aufgaben-Entität (ai_task), die jeden Titel einmal einem Genre und einer Helligkeit zuordnet. Ohne KI gilt für jeden Titel „Drama“.",
+          "ai_notify": "Optional: Benachrichtigungs-Entität (z. B. Notifications for Android TV), die nach jeder Anpassung die geänderten Werte anzeigt."
         }
       }
+    },
+    "error": {
+      "profiler_missing": "Die Integration Entertainment Profiler ist nicht installiert bzw. nicht eingerichtet."
     }
   },
   "selector": {
@@ -233,6 +242,9 @@
       },
       "high_power": {
         "name": "Hohe Leistung"
+      },
+      "picture_ai": {
+        "name": "KI-Bildoptimierung"
       }
     },
     "button": {
@@ -276,6 +288,25 @@
       },
       "native_pq": {
         "name": "Native Bildwerte (live)"
+      },
+      "picture_ai_genre": {
+        "name": "KI-Bild Genre",
+        "state": {
+          "drama": "Drama",
+          "thriller": "Thriller",
+          "action": "Action",
+          "comedy": "Komödie",
+          "animation": "Animation",
+          "documentary": "Doku",
+          "horror": "Horror",
+          "sport": "Sport",
+          "scifi": "Sci-Fi",
+          "unknown_title": "Neuer Titel",
+          "nothing": "Nichts"
+        }
+      },
+      "picture_ai_last_change": {
+        "name": "KI-Bild letzte Änderung"
       }
     }
   },
@@ -319,6 +350,52 @@
         "keys": {
           "name": "Tasten",
           "description": "Tastennamen ohne KEYCODE_-Präfix."
+        }
+      }
+    },
+    "picture_ai_apply": {
+      "name": "KI-Bild jetzt anpassen",
+      "description": "Passt das Bild sofort an den laufenden Titel an. Mit Probelauf wird nur der Plan zurückgegeben.",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        },
+        "dry_run": {
+          "name": "Probelauf",
+          "description": "Nichts ändern, nur Ziel- und Änderungswerte zurückgeben."
+        }
+      }
+    },
+    "picture_ai_import": {
+      "name": "KI-Bild Titel importieren",
+      "description": "Speichert Genre, Helligkeit, Art und gelernte Werte für viele Titel auf einmal.",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        },
+        "titles": {
+          "name": "Titel",
+          "description": "Schlüssel → {genre, darkness, kind, learned: {HDR-Format: {Menü-Key: Wert}}}."
+        },
+        "replace": {
+          "name": "Ersetzen",
+          "description": "Alle vorhandenen Titel vorher löschen."
+        }
+      }
+    },
+    "picture_ai_forget": {
+      "name": "KI-Bild Titel vergessen",
+      "description": "Löscht Genre und gelernte Werte eines Titels; beim nächsten Mal wird er neu eingeordnet.",
+      "fields": {
+        "device_id": {
+          "name": "Beamer",
+          "description": "Der XGIMI H20."
+        },
+        "key": {
+          "name": "Schlüssel",
+          "description": "Der Profil-Schlüssel, z. B. Plex|The Expanse."
         }
       }
     }

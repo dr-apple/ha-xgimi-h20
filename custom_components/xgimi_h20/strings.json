@@ -27,13 +27,22 @@
         "data": {
           "write_mode": "Write mode for picture settings",
           "scan_interval": "Polling interval",
-          "snapshot_on_start": "Read new picture profiles automatically"
+          "snapshot_on_start": "Read new picture profiles automatically",
+          "ai_profiler": "AI picture: Entertainment Profiler sensor",
+          "ai_task": "AI entity for genre detection",
+          "ai_notify": "Show changes on"
         },
         "data_description": {
           "write_mode": "Persistent: the projector's picture menu is driven briefly (panel visible 3–20 s), the value is stored like a manual change. Live: written directly into the picture pipeline, invisible and instant, but lost on app/source change and not shown in the projector menu. Picture mode and settings without a native key always use the menu.",
-          "snapshot_on_start": "When a source / HDR type / picture mode combination is seen for the first time (e.g. the first Dolby Vision title), the picture menu is read once (panel visible ~30 s) so every value is known for that profile."
+          "snapshot_on_start": "When a source / HDR type / picture mode combination is seen for the first time (e.g. the first Dolby Vision title), the picture menu is read once (panel visible ~30 s) so every value is known for that profile.",
+          "ai_profiler": "The “Active profile” sensor of the Entertainment Profiler integration (v0.3.0 or newer). It tells which app and which series or movie is playing. Leave empty to turn the AI picture optimisation off.",
+          "ai_task": "An AI task entity (ai_task) that sorts every title once into a genre and a brightness. Without it every title counts as “drama”.",
+          "ai_notify": "Optional: notify entity (e.g. Notifications for Android TV) that shows the changed values after every adjustment."
         }
       }
+    },
+    "error": {
+      "profiler_missing": "The Entertainment Profiler integration is not installed or not set up."
     }
   },
   "selector": {
@@ -233,6 +242,9 @@
       },
       "high_power": {
         "name": "High power"
+      },
+      "picture_ai": {
+        "name": "AI picture optimisation"
       }
     },
     "button": {
@@ -276,6 +288,25 @@
       },
       "native_pq": {
         "name": "Native PQ (live)"
+      },
+      "picture_ai_genre": {
+        "name": "AI picture genre",
+        "state": {
+          "drama": "Drama",
+          "thriller": "Thriller",
+          "action": "Action",
+          "comedy": "Comedy",
+          "animation": "Animation",
+          "documentary": "Documentary",
+          "horror": "Horror",
+          "sport": "Sport",
+          "scifi": "Sci-fi",
+          "unknown_title": "New title",
+          "nothing": "Nothing"
+        }
+      },
+      "picture_ai_last_change": {
+        "name": "AI picture last change"
       }
     }
   },
@@ -319,6 +350,52 @@
         "keys": {
           "name": "Keys",
           "description": "Key names without KEYCODE_ prefix."
+        }
+      }
+    },
+    "picture_ai_apply": {
+      "name": "Adjust AI picture now",
+      "description": "Adjusts the picture to the current title right away. With dry run only the plan is returned.",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        },
+        "dry_run": {
+          "name": "Dry run",
+          "description": "Change nothing, only return target and changes."
+        }
+      }
+    },
+    "picture_ai_import": {
+      "name": "Import AI picture titles",
+      "description": "Stores genre, brightness, kind and learned values for many titles at once.",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        },
+        "titles": {
+          "name": "Titles",
+          "description": "Key → {genre, darkness, kind, learned: {HDR format: {menu key: value}}}."
+        },
+        "replace": {
+          "name": "Replace",
+          "description": "Delete all existing titles first."
+        }
+      }
+    },
+    "picture_ai_forget": {
+      "name": "Forget AI picture title",
+      "description": "Deletes genre and learned values of a title; it is classified again next time.",
+      "fields": {
+        "device_id": {
+          "name": "Projector",
+          "description": "The XGIMI H20."
+        },
+        "key": {
+          "name": "Key",
+          "description": "The profile key, e.g. Plex|The Expanse."
         }
       }
     }

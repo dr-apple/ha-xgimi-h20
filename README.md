@@ -99,6 +99,44 @@ data:
   keys: [HOME]
 ```
 
+## AI picture optimisation (optional)
+
+Adapts the picture automatically to what is playing: genre, how dark the title is and – if available – series or movie. Whatever you adjust by hand while a title plays is remembered for exactly that title and HDR format.
+
+**Requirement:** the [**Entertainment Profiler**](https://github.com/dr-apple/ha-entertainment-profiler) integration. It tells which app and which series or movie is playing (`Plex|The Expanse`). If its sensor also provides the attributes `media_kind` (`series` / `movie`) and `media_player`, the optimisation tells series from movies (D65 only for movies) and passes the plot summary to the AI; without them every title counts as a series. For genre detection you also need an **AI task entity** (`ai_task`, e.g. from Anthropic, OpenAI, Google or Ollama) – without it every title counts as drama.
+
+**Setup:** *Devices & services → XGIMI H20 → Configure*
+
+| Option | Meaning |
+|---|---|
+| Entertainment Profiler sensor | The profiler's *Active profile* sensor. Empty = feature off. |
+| AI entity for genre detection | Classifies every new title **once** (genre + bright/medium/dark); the result is stored. |
+| Show changes on | Optional, e.g. the entity of *Notifications for Android TV*: after every adjustment the changed values are shown ("Comedy, bright: Brightness 50 → 49, Saturation 50 → 52"). It waits until the profiler is done so the notifications do not overlap. |
+
+You then get the switch **AI picture optimisation** (starts off) and the sensors **AI picture genre** and **AI picture last change** (attribute `changes`: list of `name`, `old`, `new` – handy for a table on a dashboard). Every adjustment also fires the event `xgimi_h20_picture_ai_applied`.
+
+**What is set** (20 s after every title or HDR change, only values that differ, live and invisible; only when the profiler knows a series or movie title – plain apps like YouTube are left alone):
+
+| Genre | Light output · Brightness · Contrast · Saturation | Enhancements |
+|---|---|---|
+| Drama | 8 · 50 · 45 · 50 | – |
+| Comedy | 8 · 50 · 45 · 52 | – |
+| Action | 9 · 50 · 50 · 54 | – |
+| Sci-fi | 9 · 50 · 48 · 52 | – |
+| Thriller | 7 · 49 · 46 · 48 | Local contrast Middle, Adaptive luma Low |
+| Horror | 7 · 48 · 48 · 46 | Local contrast Middle, Adaptive luma Low |
+| Animation | 9 · 50 · 48 · 58 | Sharpness 5, Noise reduction Low, De-contour High |
+| Documentary | 8 · 50 · 46 · 52 | Sharpness 5, MaxVivid Low |
+| Sport | 10 · 50 · 50 · 54 | – |
+
+- **Dark titles:** brightness +2, local contrast Middle, adaptive luma Low. **Bright titles:** brightness −1.
+- **Movies:** colour temperature D65; **series and unknown:** colour temperature *Movie*.
+- **Otherwise always:** sharpness 3, noise reduction Middle, local contrast Off, adaptive luma Off, de-contour Middle, MaxVivid Off – so nothing "sticks" after a cartoon.
+- **Learning:** if you change light output, brightness, contrast, saturation, picture mode or MEMC while a title has been playing for at least 2 minutes and leave it for 90 s, these values apply to that title and HDR format from then on. Picture mode and MEMC go through the picture menu (panel briefly visible) and are only set from learned values.
+- Settings the projector locks in the current profile (e.g. MaxVivid with Dolby Vision) are skipped.
+
+**Services:** `xgimi_h20.picture_ai_apply` (adjust now, with `dry_run: true` only return the plan), `xgimi_h20.picture_ai_import` (import titles, e.g. from an older own solution), `xgimi_h20.picture_ai_forget` (let a title be classified again).
+
 ## Dashboard
 
 A ready-made dashboard view in an Apple / *Liquid Glass* style: "Now playing" card with HDR badge, round control-centre buttons (power, autofocus, picture menu, read settings), picture-mode tiles that adapt to SDR / Dolby Vision, a full remote, and every picture setting grouped into *Picture*, *Enhancements*, *Fine tuning* and *Info*. In standby it collapses to the power button and the remote.

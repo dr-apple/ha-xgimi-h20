@@ -99,6 +99,44 @@ data:
   keys: [HOME]
 ```
 
+## KI-Bildoptimierung (optional)
+
+Passt das Bild automatisch an das an, was gerade läuft: Serie oder Film, Genre und wie dunkel der Titel ist. Was du bei einem Titel von Hand nachstellst, merkt sie sich für genau diesen Titel und dieses HDR-Format.
+
+**Voraussetzung:** die Integration [**Entertainment Profiler**](https://github.com/dr-apple/ha-entertainment-profiler). Er erkennt, welche App und welche Serie bzw. welcher Film läuft (`Plex|The Expanse`). Meldet sein Sensor zusätzlich die Attribute `media_kind` (`series` / `movie`) und `media_player`, unterscheidet die Bildoptimierung Serien und Filme (D65 nur bei Filmen) und gibt der KI die Inhaltsbeschreibung mit; ohne diese Attribute gilt jeder Titel als Serie. Für die Genre-Erkennung zusätzlich eine **KI-Aufgaben-Entität** (`ai_task`, z. B. von Anthropic, OpenAI, Google oder Ollama) – ohne KI gilt jeder Titel als Drama.
+
+**Einrichten:** *Geräte & Dienste → XGIMI H20 → Konfigurieren*
+
+| Option | Bedeutung |
+|---|---|
+| Entertainment-Profiler-Sensor | Der Sensor *Aktives Profil* des Profilers. Leer = Funktion aus. |
+| KI-Entität für die Genre-Erkennung | Ordnet jeden neuen Titel **einmal** ein (Genre + hell/mittel/dunkel), das Ergebnis wird gespeichert. |
+| Meldung auf dem Beamer an | Optional, z. B. die Entität von *Notifications for Android TV*: Nach jeder Anpassung erscheinen die geänderten Werte („Komödie, hell: Helligkeit 50 → 49, Sättigung 50 → 52“). Sie kommt erst, wenn der Profiler fertig ist, damit sich die Meldungen nicht überlagern. |
+
+Danach gibt es den Schalter **KI-Bildoptimierung** (startet aus) und die Sensoren **KI-Bild Genre** und **KI-Bild letzte Änderung** (Attribut `changes`: Liste mit `name`, `old`, `new` – ideal für eine Tabelle im Dashboard). Zusätzlich feuert jede Anpassung das Ereignis `xgimi_h20_picture_ai_applied`.
+
+**Was eingestellt wird** (20 s nach jedem Titel- oder HDR-Wechsel, nur abweichende Werte, live und unsichtbar; nur wenn der Profiler einen Serien- oder Filmtitel kennt – reine Apps wie YouTube bleiben unberührt):
+
+| Genre | Lichtleistung · Helligkeit · Kontrast · Sättigung | Bildveredelung |
+|---|---|---|
+| Drama | 8 · 50 · 45 · 50 | – |
+| Komödie | 8 · 50 · 45 · 52 | – |
+| Action | 9 · 50 · 50 · 54 | – |
+| Sci-Fi | 9 · 50 · 48 · 52 | – |
+| Thriller | 7 · 49 · 46 · 48 | Lok. Kontrast Mittel, Adaptive Luma Niedrig |
+| Horror | 7 · 48 · 48 · 46 | Lok. Kontrast Mittel, Adaptive Luma Niedrig |
+| Animation | 9 · 50 · 48 · 58 | Schärfe 5, Rauschunterdrückung Niedrig, Konturenglättung Hoch |
+| Doku | 8 · 50 · 46 · 52 | Schärfe 5, MaxLebhaft Niedrig |
+| Sport | 10 · 50 · 50 · 54 | – |
+
+- **Dunkle Titel:** Helligkeit +2, Lokaler Kontrast Mittel, Adaptive Luma Niedrig. **Helle Titel:** Helligkeit −1.
+- **Filme:** Farbtemperatur D65, **Serien und Unbekanntes:** Farbtemperatur *Film*.
+- **Sonst immer:** Schärfe 3, Rauschunterdrückung Mittel, Lokaler Kontrast Aus, Adaptive Luma Aus, Konturenglättung Mittel, MaxLebhaft Aus – so bleibt nach einem Zeichentrick nichts „hängen“.
+- **Lernen:** Änderst du Lichtleistung, Helligkeit, Kontrast, Sättigung, Bildmodus oder MEMC, während ein Titel seit mindestens 2 Minuten läuft, und lässt sie 90 s so, gelten diese Werte künftig für diesen Titel und dieses HDR-Format. Bildmodus und MEMC laufen über das Bildmenü (Panel kurz sichtbar) und werden nur aus gelernten Werten gesetzt.
+- Was der Beamer im aktuellen Profil sperrt (z. B. MaxLebhaft bei Dolby Vision), wird übersprungen.
+
+**Dienste:** `xgimi_h20.picture_ai_apply` (sofort anpassen, mit `dry_run: true` nur den Plan zurückgeben), `xgimi_h20.picture_ai_import` (Titel übernehmen, z. B. aus einer älteren eigenen Lösung), `xgimi_h20.picture_ai_forget` (Titel neu einordnen lassen).
+
 ## Dashboard
 
 Ein fertiges Dashboard im Apple-/*Liquid-Glass*-Stil: „Jetzt läuft“-Karte mit HDR-Plakette, runde Kontrollzentrum-Knöpfe (Ein/Aus, Autofokus, Bildmenü, Einlesen), Bildmodus-Kacheln, die sich an SDR / Dolby Vision anpassen, eine komplette Fernbedienung und alle Bildeinstellungen gruppiert in *Bild*, *Verbesserungen*, *Feinabstimmung* und *Info*. Im Standby schrumpft es auf Ein/Aus-Knopf und Fernbedienung.

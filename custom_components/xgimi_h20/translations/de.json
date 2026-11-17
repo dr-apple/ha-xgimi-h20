@@ -377,7 +377,7 @@
         },
         "titles": {
           "name": "Titel",
-          "description": "Schlüssel → {genre, darkness, kind, learned: {HDR-Format: {Menü-Key: Wert}}}."
+          "description": "Profil-Schlüssel → Objekt mit genre, darkness, kind und learned (je HDR-Format: Menü-Key → Wert)."
         },
         "replace": {
           "name": "Ersetzen",

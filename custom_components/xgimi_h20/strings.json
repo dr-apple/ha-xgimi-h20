@@ -377,7 +377,7 @@
         },
         "titles": {
           "name": "Titles",
-          "description": "Key → {genre, darkness, kind, learned: {HDR format: {menu key: value}}}."
+          "description": "Profile key → object with genre, darkness, kind and learned (per HDR format: menu key → value)."
         },
         "replace": {
           "name": "Replace",

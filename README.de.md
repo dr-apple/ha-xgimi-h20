@@ -12,6 +12,13 @@ Vollwertige lokale Integration für den **XGIMI H20** (Google TV, Modell `XR13A`
 
 > 🎛️ Mit fertigem [Liquid-Glass-Dashboard](#dashboard).
 
+## Video
+
+[![Video: XGIMI H20 in Home Assistant](https://img.youtube.com/vi/MDMSbW8SyjY/maxresdefault.jpg)](https://youtu.be/MDMSbW8SyjY)
+
+▶️ **[Video auf YouTube ansehen](https://youtu.be/MDMSbW8SyjY)** – Einrichtung, Dashboard und die KI-Bildoptimierung in Aktion.
+
+
 ## Was geht
 
 **Bildeinstellungen (lesen + schreiben)**
